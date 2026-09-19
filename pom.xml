@@ -33,7 +33,7 @@
         <cpm.toolbox.dir>${project.basedir}/resources/CPM-Toolbox</cpm.toolbox.dir>
 
         <provtoolbox.version>2.4.0</provtoolbox.version>
-        <openprovenance.version>2.2.1</openprovenance.version>
+        <openprovenance.version>2.2.4</openprovenance.version>
         <junit.version>6.1.3</junit.version>
 
         <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
