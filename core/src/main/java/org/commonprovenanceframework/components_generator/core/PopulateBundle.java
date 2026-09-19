@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import cz.muni.fi.cpm.divided.ordered.CpmOrderedFactory;
 import cz.muni.fi.cpm.model.CpmDocument;
@@ -10,18 +10,18 @@ import java.util.UUID;
 
 class PopulateBundle {
     public static void Execute(
-        String bundlePath,
-        String storageUrlBase,
-        String orgId,
-        String keyPath,
-        String bundleId,
-        String connectorId,
-        int forwardDistance,
-        int backwardDistance,
-        int entityCount,
-        String type,
-        String outputFolder,
-        boolean createGraph
+            String bundlePath,
+            String storageUrlBase,
+            String orgId,
+            String keyPath,
+            String bundleId,
+            String connectorId,
+            int forwardDistance,
+            int backwardDistance,
+            int entityCount,
+            String type,
+            String outputFolder,
+            boolean createGraph
     ) {
         if (bundlePath == null && storageUrlBase == null) {
             throw new RuntimeException("Storage url base must be set if bundle path is null");
@@ -48,9 +48,9 @@ class PopulateBundle {
         }
 
         var connectorOptional = cpmDocument.getForwardConnectors()
-            .stream()
-            .filter(fc -> fc.getId().getLocalPart().equals(connectorId))
-            .findFirst();
+                .stream()
+                .filter(fc -> fc.getId().getLocalPart().equals(connectorId))
+                .findFirst();
         if (connectorOptional.isEmpty()) {
             System.err.printf("No connector found for id: %s%n", connectorId);
             return;
@@ -58,11 +58,11 @@ class PopulateBundle {
 
         // Get backward connectors from which forward connector was derived
         var derivation = connectorOptional.get()
-            .getEffectEdges()
-            .stream()
-            .filter(k -> k.getKind() == StatementOrBundle.Kind.PROV_DERIVATION)
-            .map(k -> k.getCause().getElements().getFirst())
-            .toList();
+                .getEffectEdges()
+                .stream()
+                .filter(k -> k.getKind() == StatementOrBundle.Kind.PROV_DERIVATION)
+                .map(k -> k.getCause().getElements().getFirst())
+                .toList();
 
         var lastDerivedEntityId = connectorOptional.get().getId();
         var statements = new ArrayList<Statement>();
@@ -112,9 +112,9 @@ class PopulateBundle {
 
         var originalLocalPartPrefix = fullBundleId.getLocalPart().split("-v")[0];
         var newId = pF.newQualifiedName(
-            fullBundleId.getNamespaceURI(),
-            originalLocalPartPrefix + "-v" + System.currentTimeMillis(),
-            fullBundleId.getPrefix()
+                fullBundleId.getNamespaceURI(),
+                originalLocalPartPrefix + "-v" + System.currentTimeMillis(),
+                fullBundleId.getPrefix()
         );
         bundle.setId(newId);
 
@@ -123,12 +123,12 @@ class PopulateBundle {
 
         if (storageUrlBase != null) {
             ProvenanceStorageClient.storeDocument(
-                storageUrlBase,
-                documentJson,
-                bundleId,
-                orgId,
-                keyPath,
-                true
+                    storageUrlBase,
+                    documentJson,
+                    bundleId,
+                    orgId,
+                    keyPath,
+                    true
             );
         }
 

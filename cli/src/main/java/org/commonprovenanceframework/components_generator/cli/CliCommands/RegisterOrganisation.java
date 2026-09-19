@@ -1,6 +1,6 @@
-package cz.muni.fi.components_generator.cli.CliCommands;
+package org.commonprovenanceframework.components_generator.cli.CliCommands;
 
-import cz.muni.fi.components_generator.core.Commands;
+import org.commonprovenanceframework.components_generator.core.Commands;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "register-org", description = "Creates a new organization")
@@ -22,15 +22,15 @@ public class RegisterOrganisation implements Runnable {
     }
 
     @CommandLine.Option(names = {"-c", "--client-certificate"},
-        description = "certificate of the client org.\n" +
-            "certificate will be created and signed by last intermediate certificate if not provided")
+            description = "certificate of the client org.\n" +
+                    "certificate will be created and signed by last intermediate certificate if not provided")
     String clientCertificate;
 
     @CommandLine.Option(names = {"-k", "--intermediate-key"}, description = "Signing key of the last intermediate certificate")
     String lastIntermediateKey;
 
     @CommandLine.Option(names = {"-d", "--directory"},
-        description = "Base directory where created certificate will be exported.\n Must be set if client certificate is omitted.")
+            description = "Base directory where created certificate will be exported.\n Must be set if client certificate is omitted.")
     String outputFolder;
 
     @CommandLine.Option(names = {"-O", "--organization-id"}, description = "id of the created organization")
@@ -47,12 +47,12 @@ public class RegisterOrganisation implements Runnable {
         }
 
         Commands.RegisterOrganisation(
-            storageUrlBase,
-            intermediateCertificates,
-            clientCertificate,
-            lastIntermediateKey,
-            outputFolder,
-            organizationId
+                storageUrlBase,
+                intermediateCertificates,
+                clientCertificate,
+                lastIntermediateKey,
+                outputFolder,
+                organizationId
         );
     }
 }

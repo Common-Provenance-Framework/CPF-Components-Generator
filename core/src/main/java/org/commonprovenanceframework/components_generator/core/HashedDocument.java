@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import org.openprovenance.prov.model.Document;
 

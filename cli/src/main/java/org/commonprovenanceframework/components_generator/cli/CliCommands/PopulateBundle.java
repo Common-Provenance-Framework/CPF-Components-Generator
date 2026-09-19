@@ -1,6 +1,6 @@
-package cz.muni.fi.components_generator.cli.CliCommands;
+package org.commonprovenanceframework.components_generator.cli.CliCommands;
 
-import cz.muni.fi.components_generator.core.*;
+import org.commonprovenanceframework.components_generator.core.Commands;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model;
@@ -83,18 +83,18 @@ public class PopulateBundle implements Runnable {
         }
 
         Commands.PopulateBundle(
-            bundlePath,
-            storageUrlBase,
-            orgId,
-            keyPath,
-            bundleId,
-            connectorId,
-            forwardDistance,
-            backwardDistance,
-            entityCount,
-            type,
-            outputFolder,
-            createGraph
+                bundlePath,
+                storageUrlBase,
+                orgId,
+                keyPath,
+                bundleId,
+                connectorId,
+                forwardDistance,
+                backwardDistance,
+                entityCount,
+                type,
+                outputFolder,
+                createGraph
         );
     }
 }
