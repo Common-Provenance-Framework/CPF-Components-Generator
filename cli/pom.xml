@@ -11,6 +11,10 @@
 
     <artifactId>cli</artifactId>
 
+    <name>CPF Components Generator CLI</name>
+    <description>Command-line interface for generating Common Provenance Model components, certificates and provenance chains.</description>
+    <url>https://github.com/Common-Provenance-Framework/CPF-Components-Generator</url>
+
     <properties>
         <cpm.toolbox.dir>${project.basedir}/../resources/CPM-Toolbox</cpm.toolbox.dir>
 

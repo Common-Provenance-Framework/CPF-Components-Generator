@@ -8,6 +8,24 @@
     <artifactId>componentsgenerator</artifactId>
     <version>2.0.0</version>
 
+    <name>CPF Components Generator Root</name>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm child.scm.connection.inherit.append.path="false"
+         child.scm.developerConnection.inherit.append.path="false"
+         child.scm.url.inherit.append.path="false">
+        <connection>scm:git:https://github.com/Common-Provenance-Framework/CPF-Components-Generator.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Common-Provenance-Framework/CPF-Components-Generator.git</developerConnection>
+        <url>https://github.com/Common-Provenance-Framework/CPF-Components-Generator</url>
+    </scm>
+
     <organization>
         <name>Masaryk University</name>
         <url>https://www.muni.cz/</url>
