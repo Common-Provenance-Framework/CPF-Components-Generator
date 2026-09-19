@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import cz.muni.fi.cpm.divided.ordered.CpmOrderedFactory;
 import cz.muni.fi.cpm.model.CpmDocument;
@@ -15,18 +15,18 @@ class LinkBundle {
     private static final String MetaPrefix = "meta";
 
     public static void Execute(
-        String storageUrlBase,
-        String storageUrlBaseInternal,
-        String organizationId,
-        String keyPath,
-        String bundleName,
-        int branching,
-        String fromOrganizationId,
-        String fromBundleId,
-        String fromConnectorId,
-        String fromKeyPath,
-        String outputFolder,
-        boolean createGraph
+            String storageUrlBase,
+            String storageUrlBaseInternal,
+            String organizationId,
+            String keyPath,
+            String bundleName,
+            int branching,
+            String fromOrganizationId,
+            String fromBundleId,
+            String fromConnectorId,
+            String fromKeyPath,
+            String outputFolder,
+            boolean createGraph
     ) {
         if (storageUrlBase == null || keyPath == null) {
             throw new RuntimeException("Storage url base and key path must be set.");
@@ -48,16 +48,16 @@ class LinkBundle {
         var fromCpm = new CpmDocument(fromDocument.getDocument(), pF, cPF, new CpmOrderedFactory());
 
         INode fromConnector = fromCpm.getForwardConnectors().stream()
-            .filter(fc -> fromConnectorId == null || fc.getId().getLocalPart().equals(fromConnectorId))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("No forward connector found for id: " + fromConnectorId));
+                .filter(fc -> fromConnectorId == null || fc.getId().getLocalPart().equals(fromConnectorId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No forward connector found for id: " + fromConnectorId));
 
         var backwardConnector = new ForwardConnectorMetadata(
-            fromConnector.getId(),
-            pF.newQualifiedName(fromStorageUrl, fromBundleId, StoragePrefix),
-            pF.newQualifiedName(metaUrl, fromBundleId + "_meta", MetaPrefix),
-            fromDocument.getHash(),
-            HashAlgorithms.SHA256
+                fromConnector.getId(),
+                pF.newQualifiedName(fromStorageUrl, fromBundleId, StoragePrefix),
+                pF.newQualifiedName(metaUrl, fromBundleId + "_meta", MetaPrefix),
+                fromDocument.getHash(),
+                HashAlgorithms.SHA256
         );
 
         var generator = new ComponentGenerator(storageUrlBaseInternal, organizationId);
@@ -65,30 +65,30 @@ class LinkBundle {
         var newDocumentJson = serializer.createProvStorageJson(newDocument.toDocument());
 
         ProvenanceStorageClient.storeDocument(
-            storageUrlBase,
-            newDocumentJson,
-            newDocument.getBundleId().getLocalPart(),
-            organizationId,
-            keyPath,
-            false
+                storageUrlBase,
+                newDocumentJson,
+                newDocument.getBundleId().getLocalPart(),
+                organizationId,
+                keyPath,
+                false
         );
 
         if (fromKeyPath != null) {
             var referencedBundle = generator.addSpecializedForwardConnector(
-                fromCpm,
-                fromConnector,
-                newDocument.getBundleId(),
-                pF.newQualifiedName(metaUrl, bundleName + "_meta", MetaPrefix),
-                CustomSerializer.ProvStorageJsonHash(newDocumentJson)
+                    fromCpm,
+                    fromConnector,
+                    newDocument.getBundleId(),
+                    pF.newQualifiedName(metaUrl, bundleName + "_meta", MetaPrefix),
+                    CustomSerializer.ProvStorageJsonHash(newDocumentJson)
             );
             var referencedBundleJson = serializer.createProvStorageJson(referencedBundle);
             ProvenanceStorageClient.storeDocument(
-                storageUrlBase,
-                referencedBundleJson,
-                fromBundleId,
-                fromOrganizationId,
-                fromKeyPath,
-                true
+                    storageUrlBase,
+                    referencedBundleJson,
+                    fromBundleId,
+                    fromOrganizationId,
+                    fromKeyPath,
+                    true
             );
         }
 
@@ -97,6 +97,6 @@ class LinkBundle {
         }
 
         System.out.println("Linked bundle " + newDocument.getBundleId().getLocalPart()
-            + " to " + fromOrganizationId + "/" + fromBundleId);
+                + " to " + fromOrganizationId + "/" + fromBundleId);
     }
 }

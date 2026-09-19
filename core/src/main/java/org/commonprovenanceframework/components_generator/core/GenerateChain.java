@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.divided.ordered.CpmOrderedFactory;
@@ -20,15 +20,15 @@ import java.util.List;
 
 class GenerateChain {
     public static void Execute(
-        int provenanceChainLength,
-        int branching,
-        String bundleNameBase,
-        String organizationId,
-        String storageUrlBase,
-        String keyPath,
-        String outputFolder,
-        boolean createGraph,
-        String storageUrlBaseInternal
+            int provenanceChainLength,
+            int branching,
+            String bundleNameBase,
+            String organizationId,
+            String storageUrlBase,
+            String keyPath,
+            String outputFolder,
+            boolean createGraph,
+            String storageUrlBaseInternal
     ) {
         if (provenanceChainLength <= 0) {
             throw new RuntimeException("Provenance chain length must be a positive integer");
@@ -66,11 +66,11 @@ class GenerateChain {
             System.out.println("Starting index: " + i);
             var documentGenerator = new ComponentGenerator(storageUrlBaseInternal, organizationId);
             var doc = documentGenerator.createBundle(
-                bundleNameBase + i,
-                i == 0 ? branching : 1,
-                previousConnectors,
-                redundantConnectors,
-                connectorDerivationMapping
+                    bundleNameBase + i,
+                    i == 0 ? branching : 1,
+                    previousConnectors,
+                    redundantConnectors,
+                    connectorDerivationMapping
             );
             var documentJson = serializer.createProvStorageJson(doc.toDocument());
             bundles.put(doc.getBundleId(), doc);
@@ -83,37 +83,37 @@ class GenerateChain {
 
             if (storageUrlBase != null) {
                 ProvenanceStorageClient.storeDocument(
-                    storageUrlBase,
-                    documentJson,
-                    doc.getBundleId().getLocalPart(),
-                    organizationId,
-                    keyPath,
-                    false
+                        storageUrlBase,
+                        documentJson,
+                        doc.getBundleId().getLocalPart(),
+                        organizationId,
+                        keyPath,
+                        false
                 );
             }
 
             // Add specialized forward connectors to referenced bundle(s)
             var previousConnectorsIds = previousConnectors.stream().map(ForwardConnectorMetadata::getConnectorId).toList();
             var nonRedundantBcs = doc.getBackwardConnectors().stream()
-                .filter(bc -> previousConnectorsIds.contains(bc.getId()))
-                .toList();
+                    .filter(bc -> previousConnectorsIds.contains(bc.getId()))
+                    .toList();
 
             for (var bc : nonRedundantBcs) {
                 var originalId = (QualifiedName) bc.getElements().getFirst().getOther()
-                    .stream()
-                    .filter(o -> o.getElementName().getLocalPart().equals(CpmAttribute.REFERENCED_BUNDLE_ID.toString()))
-                    .findFirst().get().getValue();
+                        .stream()
+                        .filter(o -> o.getElementName().getLocalPart().equals(CpmAttribute.REFERENCED_BUNDLE_ID.toString()))
+                        .findFirst().get().getValue();
                 var referencedBundleId = bundles.get(originalId).getBundleId();
 
                 var cpmDocument = bundles.get(originalId);
                 var referencedBundle = documentGenerator.addSpecializedForwardConnector(
-                    cpmDocument,
-                    bc,
-                    doc.getBundleId(),
-                    pF.newQualifiedName(metaUrl, doc.getBundleId().getLocalPart() + "_meta", metaPrefix),
-                    CustomSerializer.ProvStorageJsonHash(documentJson)
+                        cpmDocument,
+                        bc,
+                        doc.getBundleId(),
+                        pF.newQualifiedName(metaUrl, doc.getBundleId().getLocalPart() + "_meta", metaPrefix),
+                        CustomSerializer.ProvStorageJsonHash(documentJson)
                 );
-                var referenceBundleJson  = serializer.createProvStorageJson(referencedBundle);
+                var referenceBundleJson = serializer.createProvStorageJson(referencedBundle);
 
                 if (outputFolder != null) {
                     var path = outputFolder + originalId.getLocalPart();
@@ -122,12 +122,12 @@ class GenerateChain {
 
                 if (storageUrlBase != null) {
                     ProvenanceStorageClient.storeDocument(
-                        storageUrlBase,
-                        referenceBundleJson,
-                        referencedBundleId.getLocalPart(),
-                        organizationId,
-                        keyPath,
-                        true
+                            storageUrlBase,
+                            referenceBundleJson,
+                            referencedBundleId.getLocalPart(),
+                            organizationId,
+                            keyPath,
+                            true
                     );
                 }
                 bundles.put(originalId, new CpmDocument(referencedBundle, pF, cPF, new CpmOrderedFactory()));
@@ -150,13 +150,13 @@ class GenerateChain {
 
             for (var fc : doc.getForwardConnectors()) {
                 previousConnectors.add(
-                    new ForwardConnectorMetadata(
-                        fc.getId(),
-                        doc.getBundleId(),
-                        pF.newQualifiedName(metaUrl, doc.getBundleId().getLocalPart() + "_meta", metaPrefix),
-                        CustomSerializer.ProvStorageJsonHash(documentJson),
-                        HashAlgorithms.SHA256
-                    )
+                        new ForwardConnectorMetadata(
+                                fc.getId(),
+                                doc.getBundleId(),
+                                pF.newQualifiedName(metaUrl, doc.getBundleId().getLocalPart() + "_meta", metaPrefix),
+                                CustomSerializer.ProvStorageJsonHash(documentJson),
+                                HashAlgorithms.SHA256
+                        )
                 );
             }
         }
@@ -177,7 +177,7 @@ class GenerateChain {
                 var connectedFc = fc.getId();
 
                 while (reverseConnectorDerivation.containsKey(connectedFc)
-                    && !created.contains(reverseConnectorDerivation.get(connectedFc))) {
+                        && !created.contains(reverseConnectorDerivation.get(connectedFc))) {
                     var nextId = reverseConnectorDerivation.get(connectedFc);
 
                     // Skip creation of redundant fc pointing to subsequent component
@@ -192,9 +192,9 @@ class GenerateChain {
                     if (!created.contains(nextId)) {
                         QualifiedName finalNextId = nextId;
                         var metadataOptional = redundantConnectors
-                            .stream()
-                            .filter(c -> c.getConnectorId().equals(finalNextId))
-                            .findFirst();
+                                .stream()
+                                .filter(c -> c.getConnectorId().equals(finalNextId))
+                                .findFirst();
                         if (metadataOptional.isEmpty()) {
                             throw new RuntimeException("Could not find redundant connector for " + nextId);
                         }
@@ -203,9 +203,9 @@ class GenerateChain {
                         var redundantFc = new ForwardConnector(nextId);
 
                         var specRedundantFcId = pF.newQualifiedName(
-                            nextId.getNamespaceURI(),
-                            nextId.getLocalPart() + "-spec",
-                            nextId.getPrefix()
+                                nextId.getNamespaceURI(),
+                                nextId.getLocalPart() + "-spec",
+                                nextId.getPrefix()
                         );
                         var specRedundantFc = new SpecForwardConnector(specRedundantFcId);
                         if (bundles.containsKey(metadata.getReferenceBundleId())) {
@@ -221,10 +221,10 @@ class GenerateChain {
                         specRedundantFc.setSpecializationOf(nextId);
 
                         statements.addAll(ComponentGenerator.connectorStatements(
-                            templateProvMapper,
-                            cpmDocument.getBundleId(),
-                            List.of(redundantFc),
-                            List.of(specRedundantFc)
+                                templateProvMapper,
+                                cpmDocument.getBundleId(),
+                                List.of(redundantFc),
+                                List.of(specRedundantFc)
                         ));
                     }
                     var wasDerivedFrom = pF.newWasDerivedFrom(nextId, connectedFc);
@@ -242,21 +242,21 @@ class GenerateChain {
 
             var originalLocalPartPrefix = fullBundleId.getLocalPart().split("-v")[0];
             var newId = pF.newQualifiedName(
-                fullBundleId.getNamespaceURI(),
-                originalLocalPartPrefix + "-v" + System.currentTimeMillis(),
-                fullBundleId.getPrefix()
+                    fullBundleId.getNamespaceURI(),
+                    originalLocalPartPrefix + "-v" + System.currentTimeMillis(),
+                    fullBundleId.getPrefix()
             );
             bundle.setId(newId);
             var docJson = serializer.createProvStorageJson(doc);
 
             if (storageUrlBase != null) {
                 ProvenanceStorageClient.storeDocument(
-                    storageUrlBase,
-                    docJson,
-                    bundleId.getLocalPart(),
-                    organizationId,
-                    keyPath,
-                    true
+                        storageUrlBase,
+                        docJson,
+                        bundleId.getLocalPart(),
+                        organizationId,
+                        keyPath,
+                        true
                 );
             }
 

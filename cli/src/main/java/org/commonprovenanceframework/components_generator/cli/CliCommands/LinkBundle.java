@@ -1,6 +1,6 @@
-package cz.muni.fi.components_generator.cli.CliCommands;
+package org.commonprovenanceframework.components_generator.cli.CliCommands;
 
-import cz.muni.fi.components_generator.core.Commands;
+import org.commonprovenanceframework.components_generator.core.Commands;
 import picocli.CommandLine.*;
 
 @Command(name = "link-bundle", description = "Creates a bundle linked to an existing bundle of another organization")
@@ -53,18 +53,18 @@ public class LinkBundle implements Runnable {
     @Override
     public void run() {
         Commands.LinkBundle(
-            storageUrlBase,
-            storageUrlBaseInternal,
-            organizationId,
-            keyPath,
-            bundleName,
-            branching,
-            fromOrganizationId,
-            fromBundleId,
-            fromConnectorId,
-            fromKeyPath,
-            outputFolder,
-            createGraph
+                storageUrlBase,
+                storageUrlBaseInternal,
+                organizationId,
+                keyPath,
+                bundleName,
+                branching,
+                fromOrganizationId,
+                fromBundleId,
+                fromConnectorId,
+                fromKeyPath,
+                outputFolder,
+                createGraph
         );
     }
 }

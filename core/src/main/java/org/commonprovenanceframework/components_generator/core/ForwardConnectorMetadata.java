@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import cz.muni.fi.cpm.template.schema.HashAlgorithms;
 import org.openprovenance.prov.model.QualifiedName;

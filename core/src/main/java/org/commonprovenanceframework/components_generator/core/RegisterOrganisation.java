@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,12 +15,12 @@ import java.util.UUID;
 
 class RegisterOrganisation {
     public static void Execute(
-        String storageUrlBase,
-        String[] intermediateCertificates,
-        String clientCertificate,
-        String lastIntermediateKey,
-        String outputFolder,
-        String organizationId
+            String storageUrlBase,
+            String[] intermediateCertificates,
+            String clientCertificate,
+            String lastIntermediateKey,
+            String outputFolder,
+            String organizationId
     ) {
         if (clientCertificate == null && outputFolder == null) {
             throw new RuntimeException("Client certificate must be set if base path is null");
@@ -40,12 +40,12 @@ class RegisterOrganisation {
             String cert;
             if (clientCertificate == null) {
                 var bundle = Certificates.generateCertificate(
-                    "CZ",
-                    organizationId,
-                    Certificates.loadPrivateKey(Path.of(lastIntermediateKey)),
-                    Certificates.loadCertificate(Path.of(intermediateCertificates[intermediateCertificates.length - 1])),
-                    false,
-                    null
+                        "CZ",
+                        organizationId,
+                        Certificates.loadPrivateKey(Path.of(lastIntermediateKey)),
+                        Certificates.loadCertificate(Path.of(intermediateCertificates[intermediateCertificates.length - 1])),
+                        false,
+                        null
                 );
 
                 var keyPath = Path.of(outputFolder + "keys/" + organizationId + ".key");
@@ -61,9 +61,9 @@ class RegisterOrganisation {
 
             HttpClient client = HttpClient.newHttpClient();
             var url = MessageFormat.format(
-                "{0}/api/v1/organizations/{1}",
-                storageUrlBase,
-                organizationId
+                    "{0}/api/v1/organizations/{1}",
+                    storageUrlBase,
+                    organizationId
             );
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -75,10 +75,10 @@ class RegisterOrganisation {
             }
 
             var request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
-                .build();
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
+                    .build();
 
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {

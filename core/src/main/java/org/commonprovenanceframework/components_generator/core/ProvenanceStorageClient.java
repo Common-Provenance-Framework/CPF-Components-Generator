@@ -1,9 +1,8 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openprovenance.prov.interop.InteropFramework;
-import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.interop.Formats;
 
 import java.io.ByteArrayInputStream;
@@ -32,15 +31,15 @@ class ProvenanceStorageClient {
 
             try (HttpClient client = HttpClient.newHttpClient()) {
                 var url = MessageFormat.format(
-                    "{0}/api/v1/organizations/{1}/documents/{2}",
-                    baseUrl,
-                    orgId,
-                    bundleId
+                        "{0}/api/v1/organizations/{1}/documents/{2}",
+                        baseUrl,
+                        orgId,
+                        bundleId
                 );
 
                 var requestBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json");
+                        .uri(URI.create(url))
+                        .header("Content-Type", "application/json");
                 if (update) {
                     requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(jsonBody.toString()));
                 } else {
@@ -62,16 +61,16 @@ class ProvenanceStorageClient {
     public static HashedDocument getDocument(String baseUrl, String orgId, String bundleId) {
         try (HttpClient client = HttpClient.newHttpClient()) {
             var url = MessageFormat.format(
-                "{0}/api/v1/organizations/{1}/documents/{2}",
-                baseUrl,
-                orgId,
-                bundleId
+                    "{0}/api/v1/organizations/{1}/documents/{2}",
+                    baseUrl,
+                    orgId,
+                    bundleId
             );
 
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .GET()
-                .build();
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
 
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {

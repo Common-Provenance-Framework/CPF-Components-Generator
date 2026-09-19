@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -83,7 +83,7 @@ class Certificates {
             }
 
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter()
-                .setProvider(BouncyCastleProvider.PROVIDER_NAME);
+                    .setProvider(BouncyCastleProvider.PROVIDER_NAME);
 
             if (object instanceof PEMKeyPair) {
                 // Traditional OpenSSL format (like the one we export)
@@ -94,7 +94,7 @@ class Certificates {
                 return converter.getPrivateKey((PrivateKeyInfo) object);
             } else {
                 throw new IllegalArgumentException(
-                    "Unsupported key format: " + object.getClass().getName()
+                        "Unsupported key format: " + object.getClass().getName()
                 );
             }
         } catch (Exception e) {
@@ -113,30 +113,30 @@ class Certificates {
 
         // Remove PEM headers and decode base64
         pemContent = pemContent
-            .replace("-----BEGIN EC PRIVATE KEY-----", "")
-            .replace("-----END EC PRIVATE KEY-----", "")
-            .replace("-----BEGIN PRIVATE KEY-----", "")
-            .replace("-----END PRIVATE KEY-----", "")
-            .replaceAll("\\s+", "");
+                .replace("-----BEGIN EC PRIVATE KEY-----", "")
+                .replace("-----END EC PRIVATE KEY-----", "")
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replaceAll("\\s+", "");
 
         byte[] keyBytes = java.util.Base64.getDecoder().decode(pemContent);
 
         try {
             // Try as PKCS#8 first
             java.security.spec.PKCS8EncodedKeySpec keySpec =
-                new java.security.spec.PKCS8EncodedKeySpec(keyBytes);
+                    new java.security.spec.PKCS8EncodedKeySpec(keyBytes);
             java.security.KeyFactory keyFactory =
-                java.security.KeyFactory.getInstance("EC", BouncyCastleProvider.PROVIDER_NAME);
+                    java.security.KeyFactory.getInstance("EC", BouncyCastleProvider.PROVIDER_NAME);
             return keyFactory.generatePrivate(keySpec);
         } catch (Exception e) {
             // Parse as SEC1 format and convert to PrivateKeyInfo
             try {
                 org.bouncycastle.asn1.ASN1Primitive primitive =
-                    org.bouncycastle.asn1.ASN1Primitive.fromByteArray(keyBytes);
+                        org.bouncycastle.asn1.ASN1Primitive.fromByteArray(keyBytes);
                 PrivateKeyInfo pkInfo = PrivateKeyInfo.getInstance(primitive);
 
                 JcaPEMKeyConverter converter = new JcaPEMKeyConverter()
-                    .setProvider(BouncyCastleProvider.PROVIDER_NAME);
+                        .setProvider(BouncyCastleProvider.PROVIDER_NAME);
                 return converter.getPrivateKey(pkInfo);
             } catch (Exception e2) {
                 throw new Exception("Failed to load EC private key using alternative method", e2);
@@ -155,23 +155,23 @@ class Certificates {
             if (object instanceof X509CertificateHolder) {
                 X509CertificateHolder certHolder = (X509CertificateHolder) object;
                 return new JcaX509CertificateConverter()
-                    .setProvider(BouncyCastleProvider.PROVIDER_NAME)
-                    .getCertificate(certHolder);
+                        .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                        .getCertificate(certHolder);
             } else {
                 throw new IllegalArgumentException(
-                    "File does not contain a certificate: " + object.getClass().getName()
+                        "File does not contain a certificate: " + object.getClass().getName()
                 );
             }
         }
     }
 
     public static CertificateBundle generateCertificate(
-        String countryTag,
-        String name,
-        PrivateKey authKey,
-        X509Certificate authCert,
-        boolean ca,
-        Integer pathLength) throws Exception {
+            String countryTag,
+            String name,
+            PrivateKey authKey,
+            X509Certificate authCert,
+            boolean ca,
+            Integer pathLength) throws Exception {
 
         // Generate EC key pair using SECP256R1 (equivalent to Python's ec.SECP256R1())
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProvider.PROVIDER_NAME);
@@ -181,20 +181,20 @@ class Certificates {
 
         // Subject built with X500NameBuilder (order: C, O, CN)
         X500Name subject = new X500NameBuilder(BCStyle.INSTANCE)
-            .addRDN(BCStyle.C, countryTag)
-            .addRDN(BCStyle.O, "Distributed Provenance Demo " + name)
-            .addRDN(BCStyle.CN, "DPD " + name)
-            .build();
+                .addRDN(BCStyle.C, countryTag)
+                .addRDN(BCStyle.O, "Distributed Provenance Demo " + name)
+                .addRDN(BCStyle.CN, "DPD " + name)
+                .build();
 
         X500Name issuer;
         if (authCert != null) {
             X500Name authSubject = new JcaX509CertificateHolder(authCert).getSubject();
 
             issuer = new X500NameBuilder(BCStyle.INSTANCE)
-                .addRDN(BCStyle.C, authSubject.getRDNs(BCStyle.C)[0].getFirst().getValue())
-                .addRDN(BCStyle.O, authSubject.getRDNs(BCStyle.O)[0].getFirst().getValue())
-                .addRDN(BCStyle.CN, authSubject.getRDNs(BCStyle.CN)[0].getFirst().getValue())
-                .build();
+                    .addRDN(BCStyle.C, authSubject.getRDNs(BCStyle.C)[0].getFirst().getValue())
+                    .addRDN(BCStyle.O, authSubject.getRDNs(BCStyle.O)[0].getFirst().getValue())
+                    .addRDN(BCStyle.CN, authSubject.getRDNs(BCStyle.CN)[0].getFirst().getValue())
+                    .build();
         } else {
             issuer = subject;
         }
@@ -205,21 +205,21 @@ class Certificates {
         Date notAfter = Date.from(now.plus(365 * 10, ChronoUnit.DAYS));
 
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
-            issuer,
-            serialNumber,
-            notBefore,
-            notAfter,
-            subject,
-            keyPair.getPublic()
+                issuer,
+                serialNumber,
+                notBefore,
+                notAfter,
+                subject,
+                keyPair.getPublic()
         );
 
         BasicConstraints basicConstraints = pathLength != null
-            ? new BasicConstraints(pathLength)
-            : new BasicConstraints(ca);
+                ? new BasicConstraints(pathLength)
+                : new BasicConstraints(ca);
         certBuilder.addExtension(
-            Extension.basicConstraints,
-            true,
-            basicConstraints
+                Extension.basicConstraints,
+                true,
+                basicConstraints
         );
 
         int keyUsage = KeyUsage.digitalSignature | KeyUsage.cRLSign;
@@ -229,47 +229,47 @@ class Certificates {
             keyUsage |= KeyUsage.keyEncipherment;
         }
         certBuilder.addExtension(
-            Extension.keyUsage,
-            true,
-            new KeyUsage(keyUsage)
+                Extension.keyUsage,
+                true,
+                new KeyUsage(keyUsage)
         );
 
         SubjectKeyIdentifier subjectKeyIdentifier = new SubjectKeyIdentifier(
-            keyPair.getPublic().getEncoded()
+                keyPair.getPublic().getEncoded()
         );
         certBuilder.addExtension(
-            Extension.subjectKeyIdentifier,
-            false,
-            subjectKeyIdentifier
+                Extension.subjectKeyIdentifier,
+                false,
+                subjectKeyIdentifier
         );
 
         if (!ca) {
             KeyPurposeId[] purposes = {
-                KeyPurposeId.id_kp_clientAuth,
-                KeyPurposeId.id_kp_serverAuth
+                    KeyPurposeId.id_kp_clientAuth,
+                    KeyPurposeId.id_kp_serverAuth
             };
             certBuilder.addExtension(
-                Extension.extendedKeyUsage,
-                false,
-                new ExtendedKeyUsage(purposes)
+                    Extension.extendedKeyUsage,
+                    false,
+                    new ExtendedKeyUsage(purposes)
             );
         }
 
         if (authCert != null) {
             byte[] authSubjectKeyId = authCert.getExtensionValue(
-                Extension.subjectKeyIdentifier.getId()
+                    Extension.subjectKeyIdentifier.getId()
             );
             if (authSubjectKeyId != null) {
                 // Parse the extension value (it's wrapped in an OCTET STRING)
                 SubjectKeyIdentifier authSKI = SubjectKeyIdentifier.getInstance(
-                    org.bouncycastle.asn1.ASN1OctetString.getInstance(authSubjectKeyId).getOctets()
+                        org.bouncycastle.asn1.ASN1OctetString.getInstance(authSubjectKeyId).getOctets()
                 );
                 AuthorityKeyIdentifier authorityKeyIdentifier =
-                    new AuthorityKeyIdentifier(authSKI.getKeyIdentifier());
+                        new AuthorityKeyIdentifier(authSKI.getKeyIdentifier());
                 certBuilder.addExtension(
-                    Extension.authorityKeyIdentifier,
-                    false,
-                    authorityKeyIdentifier
+                        Extension.authorityKeyIdentifier,
+                        false,
+                        authorityKeyIdentifier
                 );
             }
         }
@@ -277,13 +277,13 @@ class Certificates {
         // Sign the certificate
         PrivateKey signingKey = authKey != null ? authKey : keyPair.getPrivate();
         ContentSigner signer = new JcaContentSignerBuilder("SHA256withECDSA")
-            .setProvider(BouncyCastleProvider.PROVIDER_NAME)
-            .build(signingKey);
+                .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                .build(signingKey);
 
         X509CertificateHolder certHolder = certBuilder.build(signer);
         X509Certificate cert = new JcaX509CertificateConverter()
-            .setProvider(BouncyCastleProvider.PROVIDER_NAME)
-            .getCertificate(certHolder);
+                .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                .getCertificate(certHolder);
 
         return new CertificateBundle(keyPair.getPrivate(), cert);
     }

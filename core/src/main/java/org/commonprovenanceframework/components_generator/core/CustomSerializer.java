@@ -1,17 +1,21 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.openprovenance.prov.interop.InteropFramework;
-import org.openprovenance.prov.model.*;
+import org.openprovenance.prov.model.Bundle;
+import org.openprovenance.prov.model.Document;
+import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.interop.Formats;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.HexFormat;
+import java.util.Iterator;
+import java.util.Map;
 
 class CustomSerializer {
 
@@ -34,7 +38,7 @@ class CustomSerializer {
         }
     }
 
-    public String createProvStorageJson(Document doc){
+    public String createProvStorageJson(Document doc) {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             interop.writeDocument(outputStream, doc, Formats.ProvFormat.JSON);
@@ -92,7 +96,7 @@ class CustomSerializer {
         bundle.setId(updatedBundleId);
     }
 
-    public static String ProvStorageJsonHash(String documentJson)  {
+    public static String ProvStorageJsonHash(String documentJson) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(documentJson.getBytes(StandardCharsets.UTF_8));

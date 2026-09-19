@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;

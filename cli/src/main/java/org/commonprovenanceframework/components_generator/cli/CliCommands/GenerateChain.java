@@ -1,6 +1,6 @@
-package cz.muni.fi.components_generator.cli.CliCommands;
+package org.commonprovenanceframework.components_generator.cli.CliCommands;
 
-import cz.muni.fi.components_generator.core.Commands;
+import org.commonprovenanceframework.components_generator.core.Commands;
 import picocli.CommandLine.*;
 
 @Command(name = "generate-chain", description = "Generates a CPM provenance chain")
@@ -58,15 +58,15 @@ public class GenerateChain implements Runnable {
         }
 
         Commands.GenerateChain(
-            provenanceChainLength,
-            branching,
-            bundleNameBase,
-            organizationId,
-            storageUrlBase,
-            keyPath,
-            outputFolder,
-            createGraph,
-            storageUrlBaseInternal
+                provenanceChainLength,
+                branching,
+                bundleNameBase,
+                organizationId,
+                storageUrlBase,
+                keyPath,
+                outputFolder,
+                createGraph,
+                storageUrlBaseInternal
         );
     }
 }

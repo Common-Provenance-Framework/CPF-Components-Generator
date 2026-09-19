@@ -1,4 +1,4 @@
-package cz.muni.fi.components_generator.core;
+package org.commonprovenanceframework.components_generator.core;
 
 import cz.muni.fi.cpm.divided.ordered.CpmOrderedFactory;
 import cz.muni.fi.cpm.model.CpmDocument;
@@ -8,11 +8,7 @@ import cz.muni.fi.cpm.template.mapper.TemplateProvMapper;
 import cz.muni.fi.cpm.template.schema.*;
 import cz.muni.fi.cpm.vanilla.CpmProvFactory;
 import org.openprovenance.prov.interop.InteropFramework;
-import org.openprovenance.prov.model.Bundle;
-import org.openprovenance.prov.model.Document;
-import org.openprovenance.prov.model.ProvFactory;
-import org.openprovenance.prov.model.QualifiedName;
-import org.openprovenance.prov.model.Statement;
+import org.openprovenance.prov.model.*;
 import org.openprovenance.prov.model.interop.Formats;
 
 import java.nio.file.Files;
