@@ -27,9 +27,78 @@
     <packaging>pom</packaging>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-</project>
+        <cpm.toolbox.dir>${project.basedir}/resources/CPM-Toolbox</cpm.toolbox.dir>
 
+        <provtoolbox.version>1.0.0</provtoolbox.version>
+        <openprovenance.version>2.2.1</openprovenance.version>
+
+        <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.openprovenance.prov</groupId>
+                <artifactId>prov-model</artifactId>
+                <version>${openprovenance.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openprovenance.prov</groupId>
+                <artifactId>prov-interop</artifactId>
+                <version>${openprovenance.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openprovenance.prov</groupId>
+                <artifactId>prov-nf</artifactId>
+                <version>${openprovenance.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cz.muni.fi.cpm</groupId>
+                <artifactId>cpm-core</artifactId>
+                <version>${provtoolbox.version}</version>
+                <scope>system</scope>
+                <systemPath>${cpm.toolbox.dir}/cpm-core-${provtoolbox.version}.jar</systemPath>
+            </dependency>
+            <dependency>
+                <groupId>cz.muni.fi.cpm</groupId>
+                <artifactId>cpm-template</artifactId>
+                <version>${provtoolbox.version}</version>
+                <scope>system</scope>
+                <systemPath>${cpm.toolbox.dir}/cpm-template-${provtoolbox.version}.jar</systemPath>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin.version}</version>
+                    <configuration>
+                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                        <extraJars>
+                            <extraJar>${cpm.toolbox.dir}/cpm-core-${provtoolbox.version}.jar</extraJar>
+                            <extraJar>${cpm.toolbox.dir}/cpm-template-${provtoolbox.version}.jar</extraJar>
+                        </extraJars>
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/*.SF</exclude>
+                                    <exclude>META-INF/*.DSA</exclude>
+                                    <exclude>META-INF/*.RSA</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

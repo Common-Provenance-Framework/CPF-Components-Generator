@@ -12,35 +12,31 @@
     <artifactId>cli</artifactId>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cpm.toolbox.dir>${project.basedir}/../resources/CPM-Toolbox</cpm.toolbox.dir>
+
+        <picocli.version>4.7.7</picocli.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>cz.muni.fi.components_generator</groupId>
             <artifactId>core</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>info.picocli</groupId>
-            <artifactId>picocli</artifactId>
-            <version>4.7.7</version>
-        </dependency>
+
         <dependency>
             <groupId>cz.muni.fi.cpm</groupId>
             <artifactId>cpm-core</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/../core/src/main/resources/cpm-core-1.0.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>cz.muni.fi.cpm</groupId>
             <artifactId>cpm-template</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/../core/src/main/resources/cpm-template-1.0.0.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>${picocli.version}</version>
         </dependency>
     </dependencies>
 
@@ -49,32 +45,19 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <goals><goal>shade</goal></goals>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
                         <configuration>
-                            <extraJars>
-                                <extraJar>${project.basedir}/../core/src/main/resources/cpm-core-1.0.0.jar</extraJar>
-                                <extraJar>${project.basedir}/../core/src/main/resources/cpm-template-1.0.0.jar</extraJar>
-                            </extraJars>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>cz.muni.fi.components_generator.cli.Main</mainClass>
                                 </transformer>
                             </transformers>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                         </configuration>
                     </execution>
                 </executions>

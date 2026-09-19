@@ -13,52 +13,43 @@
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cpm.toolbox.dir>${project.basedir}/../resources/CPM-Toolbox</cpm.toolbox.dir>
+
+        <bouncycastle.version>1.86</bouncycastle.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.openprovenance.prov</groupId>
-            <artifactId>prov-model</artifactId>
-            <version>2.2.1</version>
-        </dependency>
-        <dependency>
             <groupId>cz.muni.fi.cpm</groupId>
             <artifactId>cpm-core</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/cpm-core-1.0.0.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>org.openprovenance.prov</groupId>
-            <artifactId>prov-interop</artifactId>
-            <version>2.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openprovenance.prov</groupId>
-            <artifactId>prov-nf</artifactId>
-            <version>2.2.1</version>
         </dependency>
         <dependency>
             <groupId>cz.muni.fi.cpm</groupId>
             <artifactId>cpm-template</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/cpm-template-1.0.0.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openprovenance.prov</groupId>
+            <artifactId>prov-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openprovenance.prov</groupId>
+            <artifactId>prov-interop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openprovenance.prov</groupId>
+            <artifactId>prov-nf</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.79</version>
+            <version>${bouncycastle.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
-            <version>1.79</version>
+            <version>${bouncycastle.version}</version>
         </dependency>
     </dependencies>
 </project>
