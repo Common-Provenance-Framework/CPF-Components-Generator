@@ -1,4 +1,4 @@
-package org.commonprovenanceframework.components_generator.core;
+package org.commonprovenanceframework.componentsgenerator.core;
 
 public class Commands {
     public static void GenerateChain(

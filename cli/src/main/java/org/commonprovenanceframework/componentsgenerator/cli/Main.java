@@ -1,9 +1,9 @@
-package org.commonprovenanceframework.components_generator.cli;
+package org.commonprovenanceframework.componentsgenerator.cli;
 
-import org.commonprovenanceframework.components_generator.cli.CliCommands.GenerateChain;
-import org.commonprovenanceframework.components_generator.cli.CliCommands.LinkBundle;
-import org.commonprovenanceframework.components_generator.cli.CliCommands.PopulateBundle;
-import org.commonprovenanceframework.components_generator.cli.CliCommands.RegisterOrganisation;
+import org.commonprovenanceframework.componentsgenerator.cli.CliCommands.GenerateChain;
+import org.commonprovenanceframework.componentsgenerator.cli.CliCommands.LinkBundle;
+import org.commonprovenanceframework.componentsgenerator.cli.CliCommands.PopulateBundle;
+import org.commonprovenanceframework.componentsgenerator.cli.CliCommands.RegisterOrganisation;
 import picocli.CommandLine;
 
 @CommandLine.Command(
