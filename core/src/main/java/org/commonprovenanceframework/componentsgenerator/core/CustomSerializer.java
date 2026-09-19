@@ -1,4 +1,4 @@
-package org.commonprovenanceframework.components_generator.core;
+package org.commonprovenanceframework.componentsgenerator.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package org.commonprovenanceframework.components_generator.core;
+package org.commonprovenanceframework.componentsgenerator.core;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;

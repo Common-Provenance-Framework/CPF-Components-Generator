@@ -1,6 +1,6 @@
-package org.commonprovenanceframework.components_generator.cli.CliCommands;
+package org.commonprovenanceframework.componentsgenerator.cli.CliCommands;
 
-import org.commonprovenanceframework.components_generator.core.Commands;
+import org.commonprovenanceframework.componentsgenerator.core.Commands;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model;

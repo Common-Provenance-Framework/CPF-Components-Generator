@@ -1,4 +1,4 @@
-package org.commonprovenanceframework.components_generator.core;
+package org.commonprovenanceframework.componentsgenerator.core;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x500.X500Name;

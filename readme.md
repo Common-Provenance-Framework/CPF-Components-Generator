@@ -14,19 +14,19 @@ Command-line tools for managing Common Provenance Model (CPM) organizations, cer
 ## Requirements 
 
 ### Dependencies
-- Java 23
+- Java 25
 - Docker
 - graphviz is required to generate svg graph if svg representation of the bundles are to be stored locally
 
 ### Running the app
-Run the following commands from the `dbprov-master/` directory
+The provenance storage and trusted party services are part of the separate `dbprov-master` project. Run the following commands from its directory
 - `docker build -f Dockerfile.ProvStorage -t dbprov-prov-storage .`
 - `docker build -f Dockerfile.TrustedParty -t dbprov-trusted-party .`
 - `docker compose up -d`
-Build the java CLI in the root directory
-- `mvn package -f ./components_generator/pom.xml`
+Build the java CLI from the root of this repository
+- `mvn package`
 Run the desired command with necessary options
-- `java -jar ./components_generator/cli/target/cli-1.0.0.jar <command> <options>`
+- `java -jar ./cli/target/cli-2.0.0.jar <command> <options>`
 
 ## Commands
 
@@ -277,4 +277,4 @@ The command generates:
 
 ---
 
-**Last Updated**: February 2026
+**Last Updated**: September 2026
