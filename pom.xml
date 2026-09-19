@@ -36,6 +36,10 @@
             <id>492791</id>
             <name>Daniel Puchala</name>
         </developer>
+        <developer>
+            <id>514528</id>
+            <name>Lukas Batora</name>
+        </developer>
     </developers>
 
     <modules>
