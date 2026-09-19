@@ -32,7 +32,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cpm.toolbox.dir>${project.basedir}/resources/CPM-Toolbox</cpm.toolbox.dir>
 
-        <provtoolbox.version>1.0.0</provtoolbox.version>
+        <provtoolbox.version>2.4.0</provtoolbox.version>
         <openprovenance.version>2.2.1</openprovenance.version>
 
         <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>

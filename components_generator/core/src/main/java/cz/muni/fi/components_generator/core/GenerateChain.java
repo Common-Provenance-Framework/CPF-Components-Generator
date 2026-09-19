@@ -6,6 +6,7 @@ import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.template.mapper.TemplateProvMapper;
 import cz.muni.fi.cpm.template.schema.ForwardConnector;
 import cz.muni.fi.cpm.template.schema.HashAlgorithms;
+import cz.muni.fi.cpm.template.schema.SpecForwardConnector;
 import cz.muni.fi.cpm.vanilla.CpmProvFactory;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.QualifiedName;
@@ -206,7 +207,7 @@ class GenerateChain {
                             nextId.getLocalPart() + "-spec",
                             nextId.getPrefix()
                         );
-                        var specRedundantFc = new ForwardConnector(specRedundantFcId);
+                        var specRedundantFc = new SpecForwardConnector(specRedundantFcId);
                         if (bundles.containsKey(metadata.getReferenceBundleId())) {
                             var updatedId = bundles.get(metadata.getReferenceBundleId()).getBundleId();
                             specRedundantFc.setReferencedBundleId(updatedId);
@@ -219,8 +220,12 @@ class GenerateChain {
                         specRedundantFc.setHashAlg(HashAlgorithms.SHA256);
                         specRedundantFc.setSpecializationOf(nextId);
 
-                        statements.addAll(templateProvMapper.map(redundantFc));
-                        statements.addAll(templateProvMapper.map(specRedundantFc));
+                        statements.addAll(ComponentGenerator.connectorStatements(
+                            templateProvMapper,
+                            cpmDocument.getBundleId(),
+                            List.of(redundantFc),
+                            List.of(specRedundantFc)
+                        ));
                     }
                     var wasDerivedFrom = pF.newWasDerivedFrom(nextId, connectedFc);
                     statements.add(wasDerivedFrom);

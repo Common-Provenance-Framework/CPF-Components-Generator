@@ -12,6 +12,7 @@ import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
+import org.openprovenance.prov.model.Statement;
 import org.openprovenance.prov.model.interop.Formats;
 
 import java.nio.file.Files;
@@ -141,7 +142,7 @@ class ComponentGenerator {
         mainActivity.setUsed(backwardConnectors.stream().map(bc -> new MainActivityUsed(bc.getId())).toList());
         mainActivity.setReferencedMetaBundleId(pF.newQualifiedName(MetaUrl, bundleName + "_meta", MetaPrefix));
 
-        var document = templateProvMapper.map(ti);
+        var document = templateProvMapper.toProvDocument(ti);
 
         // return document;
         return new CpmDocument(document, pF, cPF, new CpmOrderedFactory());
@@ -157,7 +158,7 @@ class ComponentGenerator {
             .findFirst()
             .get();
 
-        var spec_fc = new ForwardConnector();
+        var spec_fc = new SpecForwardConnector();
         spec_fc.setId(pF.newQualifiedName(CpmNamespaceUrl, connectorIdLocal + "-spec", CpmPrefix));
         spec_fc.setReferencedBundleId(referencedBundleId);
         spec_fc.setReferencedMetaBundleId(metaId);
@@ -167,11 +168,26 @@ class ComponentGenerator {
 
         var document = cpmDocument.toDocument();
         var bundle = ((Bundle) document.getStatementOrBundle().getFirst());
-        bundle.getStatement().addAll(templateProvMapper.map(spec_fc));
+        bundle.getStatement().addAll(connectorStatements(templateProvMapper, bundleId, List.of(), List.of(spec_fc)));
         var originalLocalPartPrefix = bundleId.getLocalPart().split("-v")[0];
         bundle.setId(pF.newQualifiedName(bundleId.getNamespaceURI(), originalLocalPartPrefix + "-v" + System.currentTimeMillis(), bundleId.getPrefix()));
 
         return document;
+    }
+
+    static List<Statement> connectorStatements(
+        TemplateProvMapper templateProvMapper,
+        QualifiedName bundleName,
+        List<ForwardConnector> forwardConnectors,
+        List<SpecForwardConnector> specForwardConnectors
+    ) {
+        var ti = new TraversalInformation();
+        ti.setBundleName(bundleName);
+        ti.setForwardConnectors(forwardConnectors);
+        ti.setSpecForwardConnectors(specForwardConnectors);
+
+        var document = templateProvMapper.toProvDocument(ti);
+        return ((Bundle) document.getStatementOrBundle().getFirst()).getStatement();
     }
 
     public static void exportDocument(Document document, String path, boolean createSvg) {
