@@ -20,6 +20,7 @@ import java.util.Map;
 class ComponentGenerator {
     private final String CpmNamespaceUrl = "https://www.commonprovenancemodel.org/cpm-namespace-v1-0/";
     private final String CpmPrefix = "cpm";
+    private final String CpmSpecVersion = "1.0";
     private final String MetaUrl;
     private final String MetaPrefix = "meta";
     private final String StorageUrl;
@@ -89,6 +90,8 @@ class ComponentGenerator {
 
             bc.setReferencedBundleId(data.getReferenceBundleId());
             bc.setReferencedMetaBundleId(data.getReferenceMetaBundleId());
+            bc.setReferencedBundleSpecV(CpmSpecVersion);
+            bc.setReferencedMetaBundleSpecV(CpmSpecVersion);
             bc.setReferencedBundleHashValue(data.getReferenceBundleHash());
             bc.setHashAlg(data.getReferenceBundleHashAlgorithm());
 
@@ -103,6 +106,8 @@ class ComponentGenerator {
 
             bc.setReferencedBundleId(data.getReferenceBundleId());
             bc.setReferencedMetaBundleId(data.getReferenceMetaBundleId());
+            bc.setReferencedBundleSpecV(CpmSpecVersion);
+            bc.setReferencedMetaBundleSpecV(CpmSpecVersion);
             bc.setReferencedBundleHashValue(data.getReferenceBundleHash());
             bc.setHashAlg(data.getReferenceBundleHashAlgorithm());
 

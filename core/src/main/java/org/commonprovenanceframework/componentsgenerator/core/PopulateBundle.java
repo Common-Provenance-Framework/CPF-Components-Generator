@@ -77,7 +77,7 @@ class PopulateBundle {
         }
 
         for (int i = 0; i < entityCount; i++) {
-            var nextEntity = pF.newEntity(CpmQualifiedName(connectorId + "-entity-" + i, pF));
+            var nextEntity = pF.newEntity(CpmQualifiedName(connectorId + "-" + type + "-entity-" + i, pF));
             statements.add(nextEntity);
             if (i <= forwardDistance + backwardDistance) {
                 if (i == 0) {

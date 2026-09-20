@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.openprovenance.prov.interop.InteropFramework;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
+import org.openprovenance.prov.model.Namespace;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.interop.Formats;
 
@@ -48,12 +49,51 @@ class CustomSerializer {
 
             JsonNode json = mapper.readTree(inputStream);
             removeJsonKeyRecursive((ObjectNode) json, "@id");
+            moveDocumentPrefixIntoBundles((ObjectNode) json);
 
             return json.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private void moveDocumentPrefixIntoBundles(ObjectNode root) {
+        JsonNode documentPrefix = root.remove("prefix");
+        if (documentPrefix == null || !documentPrefix.isObject()) {
+            return;
+        }
+        JsonNode bundles = root.get("bundle");
+        if (bundles == null || !bundles.isObject()) {
+            return;
+        }
+
+        Iterator<Map.Entry<String, JsonNode>> bundleFields = bundles.fields();
+        while (bundleFields.hasNext()) {
+            Map.Entry<String, JsonNode> bundleEntry = bundleFields.next();
+            JsonNode bundle = bundleEntry.getValue();
+            if (!bundle.isObject()) {
+                continue;
+            }
+            ObjectNode bundleNode = (ObjectNode) bundle;
+            ObjectNode bundlePrefix = bundleNode.has("prefix") && bundleNode.get("prefix").isObject()
+                    ? (ObjectNode) bundleNode.get("prefix")
+                    : bundleNode.putObject("prefix");
+
+            Iterator<Map.Entry<String, JsonNode>> declarations = documentPrefix.fields();
+            while (declarations.hasNext()) {
+                Map.Entry<String, JsonNode> declaration = declarations.next();
+                if (!bundlePrefix.has(declaration.getKey())) {
+                    bundlePrefix.set(declaration.getKey(), declaration.getValue());
+                }
+            }
+
+            bundleNode.remove("prefix");
+            ObjectNode reordered = bundleNode.objectNode();
+            reordered.set("prefix", bundlePrefix);
+            reordered.setAll(bundleNode);
+            bundleEntry.setValue(reordered);
+        }
     }
 
     private void removeJsonKeyRecursive(ObjectNode node, String keyToRemove) {
@@ -89,11 +129,21 @@ class CustomSerializer {
 
     public static void RenameBundle(Document document) {
         var bundle = (Bundle) document.getStatementOrBundle().getFirst();
-        var ns = document.getNamespace();
-        var namespaceUri = ns.lookupPrefix(bundle.getId().getPrefix());
+        var prefix = bundle.getId().getPrefix();
+        var namespaceUri = resolvePrefix(bundle.getNamespace(), prefix);
+        if (namespaceUri == null) {
+            namespaceUri = resolvePrefix(document.getNamespace(), prefix);
+        }
+        if (namespaceUri == null) {
+            return;
+        }
         var pF = new org.openprovenance.prov.vanilla.ProvFactory();
-        var updatedBundleId = pF.newQualifiedName(namespaceUri, bundle.getId().getLocalPart(), bundle.getId().getPrefix());
+        var updatedBundleId = pF.newQualifiedName(namespaceUri, bundle.getId().getLocalPart(), prefix);
         bundle.setId(updatedBundleId);
+    }
+
+    private static String resolvePrefix(Namespace namespace, String prefix) {
+        return namespace == null ? null : namespace.getPrefixes().get(prefix);
     }
 
     public static String ProvStorageJsonHash(String documentJson) {
