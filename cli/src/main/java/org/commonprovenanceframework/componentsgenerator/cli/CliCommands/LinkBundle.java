@@ -1,7 +1,10 @@
 package org.commonprovenanceframework.componentsgenerator.cli.CliCommands;
 
 import org.commonprovenanceframework.componentsgenerator.core.Commands;
+import org.commonprovenanceframework.componentsgenerator.core.LinkSource;
 import picocli.CommandLine.*;
+
+import java.util.List;
 
 @Command(name = "link-bundle", description = "Creates a bundle linked to an existing bundle of another organization")
 public class LinkBundle implements Runnable {
@@ -59,10 +62,7 @@ public class LinkBundle implements Runnable {
                 keyPath,
                 bundleName,
                 branching,
-                fromOrganizationId,
-                fromBundleId,
-                fromConnectorId,
-                fromKeyPath,
+                List.of(new LinkSource(fromOrganizationId, fromBundleId, fromConnectorId, fromKeyPath)),
                 outputFolder,
                 createGraph
         );

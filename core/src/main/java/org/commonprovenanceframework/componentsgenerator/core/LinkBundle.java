@@ -5,8 +5,10 @@ import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.INode;
 import cz.muni.fi.cpm.template.schema.HashAlgorithms;
 import cz.muni.fi.cpm.vanilla.CpmProvFactory;
+import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.vanilla.ProvFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,81 +16,113 @@ class LinkBundle {
     private static final String StoragePrefix = "storage";
     private static final String MetaPrefix = "meta";
 
-    public static void Execute(
-            String storageUrlBase,
-            String storageUrlBaseInternal,
-            String organizationId,
-            String keyPath,
-            String bundleName,
-            int branching,
-            String fromOrganizationId,
-            String fromBundleId,
-            String fromConnectorId,
-            String fromKeyPath,
-            String outputFolder,
-            boolean createGraph
+    public static GeneratedBundle Execute(
+        String storageUrlBase,
+        String storageUrlBaseInternal,
+        String organizationId,
+        String keyPath,
+        String bundleName,
+        int branching,
+        List<LinkSource> sources,
+        String outputFolder,
+        boolean createGraph
     ) {
         if (storageUrlBase == null || keyPath == null) {
-            throw new RuntimeException("Storage url base and key path must be set.");
+            throw new IllegalArgumentException("Storage url base and key path must be set.");
         }
-        if (fromOrganizationId == null || fromBundleId == null) {
-            throw new RuntimeException("Source organization id and bundle id must be set.");
+        if (sources == null || sources.isEmpty()) {
+            throw new IllegalArgumentException("At least one link source must be set.");
         }
         if (branching <= 0) {
-            throw new RuntimeException("Branching must be a positive integer.");
+            throw new IllegalArgumentException("Branching must be a positive integer.");
         }
 
         var pF = new ProvFactory();
         var cPF = new CpmProvFactory(pF);
         var serializer = new CustomSerializer();
         var metaUrl = storageUrlBaseInternal + "api/v1/documents/meta/";
-        var fromStorageUrl = storageUrlBaseInternal + "api/v1/organizations/" + fromOrganizationId + "/documents/";
 
-        var fromDocument = ProvenanceStorageClient.getDocument(storageUrlBase, fromOrganizationId, fromBundleId);
-        var fromCpm = new CpmDocument(fromDocument.getDocument(), pF, cPF, new CpmOrderedFactory());
+        var backwardConnectors = new ArrayList<ForwardConnectorMetadata>();
+        var resolved = new ArrayList<ResolvedSource>();
 
-        INode fromConnector = fromCpm.getForwardConnectors().stream()
-                .filter(fc -> fromConnectorId == null || fc.getId().getLocalPart().equals(fromConnectorId))
+        for (LinkSource source : sources) {
+            if (source.organizationId() == null || source.bundleId() == null) {
+                throw new IllegalArgumentException("Source organization id and bundle id must be set.");
+            }
+            var fromStorageUrl = storageUrlBaseInternal
+                + "api/v1/organizations/" + source.organizationId() + "/documents/";
+
+            var fromDocument = ProvenanceStorageClient.getDocument(
+                storageUrlBase, source.organizationId(), source.bundleId());
+            var fromCpm = new CpmDocument(fromDocument.getDocument(), pF, cPF, new CpmOrderedFactory());
+
+            INode fromConnector = fromCpm.getForwardConnectors().stream()
+                .filter(fc -> source.connectorId() == null
+                    || fc.getId().getLocalPart().equals(source.connectorId()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No forward connector found for id: " + fromConnectorId));
+                .orElseThrow(() -> new IllegalStateException(
+                    "No forward connector " + source.connectorId()
+                        + " in " + source.organizationId() + "/" + source.bundleId()));
 
-        var backwardConnector = new ForwardConnectorMetadata(
+            backwardConnectors.add(new ForwardConnectorMetadata(
                 fromConnector.getId(),
-                pF.newQualifiedName(fromStorageUrl, fromBundleId, StoragePrefix),
-                pF.newQualifiedName(metaUrl, fromBundleId + "_meta", MetaPrefix),
+                pF.newQualifiedName(fromStorageUrl, source.bundleId(),
+                    StoragePrefix + "_" + source.organizationId()),
+                pF.newQualifiedName(metaUrl, source.bundleId() + "_meta", MetaPrefix),
                 fromDocument.getHash(),
                 HashAlgorithms.SHA256
-        );
+            ));
+            resolved.add(new ResolvedSource(source, fromCpm, fromConnector));
+        }
 
         var generator = new ComponentGenerator(storageUrlBaseInternal, organizationId);
-        var newDocument = generator.createBundle(bundleName, branching, List.of(backwardConnector), List.of(), Map.of());
+        var newDocument = generator.createBundle(bundleName, branching, backwardConnectors, List.of(), Map.of());
         var newDocumentJson = serializer.createProvStorageJson(newDocument.toDocument());
 
         ProvenanceStorageClient.storeDocument(
-                storageUrlBase,
-                newDocumentJson,
-                newDocument.getBundleId().getLocalPart(),
-                organizationId,
-                keyPath,
-                false
+            storageUrlBase,
+            newDocumentJson,
+            newDocument.getBundleId().getLocalPart(),
+            organizationId,
+            keyPath,
+            false
         );
 
-        if (fromKeyPath != null) {
+        for (ResolvedSource source : resolved) {
+            if (source.source().keyPath() == null) {
+                continue;
+            }
+            var receiverBundleId = newDocument.getBundleId();
+            var receiverPrefix = StoragePrefix + "_" + organizationId;
+
             var referencedBundle = generator.addSpecializedForwardConnector(
-                    fromCpm,
-                    fromConnector,
-                    newDocument.getBundleId(),
-                    pF.newQualifiedName(metaUrl, bundleName + "_meta", MetaPrefix),
-                    CustomSerializer.ProvStorageJsonHash(newDocumentJson)
+                source.document(),
+                source.connector(),
+                pF.newQualifiedName(
+                    receiverBundleId.getNamespaceURI(),
+                    receiverBundleId.getLocalPart(),
+                    receiverPrefix),
+                pF.newQualifiedName(metaUrl, bundleName + "_meta", MetaPrefix),
+                CustomSerializer.ProvStorageJsonHash(newDocumentJson)
             );
-            var referencedBundleJson = serializer.createProvStorageJson(referencedBundle);
+
+            var bundle = (Bundle) referencedBundle.getStatementOrBundle().getFirst();
+            if (bundle.getNamespace() != null) {
+                bundle.getNamespace().register(receiverPrefix, receiverBundleId.getNamespaceURI());
+            }
+            var currentId = bundle.getId();
+            bundle.setId(pF.newQualifiedName(
+                currentId.getNamespaceURI(),
+                currentId.getLocalPart().split("-v")[0] + "-v" + System.currentTimeMillis(),
+                currentId.getPrefix()));
+
             ProvenanceStorageClient.storeDocument(
-                    storageUrlBase,
-                    referencedBundleJson,
-                    fromBundleId,
-                    fromOrganizationId,
-                    fromKeyPath,
-                    true
+                storageUrlBase,
+                serializer.createProvStorageJson(referencedBundle),
+                bundle.getId().getLocalPart(),
+                source.source().organizationId(),
+                source.source().keyPath(),
+                false
             );
         }
 
@@ -97,6 +131,14 @@ class LinkBundle {
         }
 
         System.out.println("Linked bundle " + newDocument.getBundleId().getLocalPart()
-                + " to " + fromOrganizationId + "/" + fromBundleId);
+            + " to " + sources.size() + " source(s)");
+
+        return new GeneratedBundle(
+            bundleName,
+            newDocument.getBundleId().getLocalPart(),
+            newDocument.getForwardConnectors().stream().map(fc -> fc.getId().getLocalPart()).toList());
+    }
+
+    private record ResolvedSource(LinkSource source, CpmDocument document, INode connector) {
     }
 }

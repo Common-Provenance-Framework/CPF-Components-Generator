@@ -1,7 +1,9 @@
 package org.commonprovenanceframework.componentsgenerator.core;
 
+import java.util.List;
+
 public class Commands {
-    public static void GenerateChain(
+    public static List<GeneratedBundle> GenerateChain(
             int provenanceChainLength,
             int branching,
             String bundleNameBase,
@@ -13,7 +15,7 @@ public class Commands {
             String storageUrlBaseInternal
 
     ) {
-        GenerateChain.Execute(
+        return GenerateChain.Execute(
                 provenanceChainLength,
                 branching,
                 bundleNameBase,
@@ -57,31 +59,25 @@ public class Commands {
         );
     }
 
-    public static void LinkBundle(
+    public static GeneratedBundle LinkBundle(
             String storageUrlBase,
             String storageUrlBaseInternal,
             String organizationId,
             String keyPath,
             String bundleName,
             int branching,
-            String fromOrganizationId,
-            String fromBundleId,
-            String fromConnectorId,
-            String fromKeyPath,
+            List<LinkSource> sources,
             String outputFolder,
             boolean createGraph
     ) {
-        LinkBundle.Execute(
+        return LinkBundle.Execute(
                 storageUrlBase,
                 storageUrlBaseInternal,
                 organizationId,
                 keyPath,
                 bundleName,
                 branching,
-                fromOrganizationId,
-                fromBundleId,
-                fromConnectorId,
-                fromKeyPath,
+                sources,
                 outputFolder,
                 createGraph
         );

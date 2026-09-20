@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 
 class GenerateChain {
-    public static void Execute(
+    public static List<GeneratedBundle> Execute(
             int provenanceChainLength,
             int branching,
             String bundleNameBase,
@@ -66,7 +66,7 @@ class GenerateChain {
             System.out.println("Starting index: " + i);
             var documentGenerator = new ComponentGenerator(storageUrlBaseInternal, organizationId);
             var doc = documentGenerator.createBundle(
-                    bundleNameBase + i,
+                    provenanceChainLength == 1 ? bundleNameBase : bundleNameBase + i,
                     i == 0 ? branching : 1,
                     previousConnectors,
                     redundantConnectors,
@@ -235,6 +235,10 @@ class GenerateChain {
                 }
             });
 
+            if (statements.isEmpty()) {
+                continue;
+            }
+
             var doc = cpmDocument.toDocument();
             var bundle = (Bundle) doc.getStatementOrBundle().getFirst();
             bundle.getStatement().addAll(statements);
@@ -267,9 +271,15 @@ class GenerateChain {
             bundles.put(entry.getKey(), new CpmDocument(doc, pF, cPF, new CpmOrderedFactory()));
         }
 
+        var result = new ArrayList<GeneratedBundle>();
         bundles.forEach((k, v) -> {
             System.out.println("The most recent bundle id for " + k.getLocalPart() + " is " + v.getBundleId().getLocalPart());
+            result.add(new GeneratedBundle(
+                    k.getLocalPart(),
+                    v.getBundleId().getLocalPart(),
+                    v.getForwardConnectors().stream().map(fc -> fc.getId().getLocalPart()).toList()));
         });
+        return List.copyOf(result);
     }
 
     private static HashMap<QualifiedName, QualifiedName> reverseMapping(HashMap<QualifiedName, List<QualifiedName>> map) {
