@@ -43,7 +43,7 @@ class RegisterOrganisation {
                         "CZ",
                         organizationId,
                         Certificates.loadPrivateKey(Path.of(lastIntermediateKey)),
-                        Certificates.loadCertificate(Path.of(intermediateCertificates[intermediateCertificates.length - 1])),
+                        Certificates.loadCertificate(Path.of(intermediateCertificates[0])),
                         false,
                         null
                 );
@@ -61,13 +61,13 @@ class RegisterOrganisation {
 
             HttpClient client = HttpClient.newHttpClient();
             var url = MessageFormat.format(
-                    "{0}/api/v1/organizations/{1}",
-                    storageUrlBase,
-                    organizationId
+                    "{0}/api/v1/organizations",
+                    storageUrlBase
             );
 
             ObjectMapper objectMapper = new ObjectMapper();
             var jsonBody = objectMapper.createObjectNode();
+            jsonBody.put("id", organizationId);
             jsonBody.put("clientCertificate", cert);
             var intermediate = jsonBody.putArray("intermediateCertificates");
             for (String intermediateCertificate : intermediateCertificatesList) {
