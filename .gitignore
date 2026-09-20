@@ -40,3 +40,4 @@ build/
 **/resources/output
 
 /.idea
+dependency-reduced-pom.xml
