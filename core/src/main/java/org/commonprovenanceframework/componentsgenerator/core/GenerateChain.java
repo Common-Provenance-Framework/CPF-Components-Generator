@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 class GenerateChain {
     public static List<GeneratedBundle> Execute(
@@ -278,7 +279,8 @@ class GenerateChain {
             result.add(new GeneratedBundle(
                     k.getLocalPart(),
                     v.getBundleId().getLocalPart(),
-                    v.getForwardConnectors().stream().map(fc -> fc.getId().getLocalPart()).toList()));
+                    v.getForwardConnectors().stream().map(fc -> fc.getId().getLocalPart()).toList(),
+                    Map.of()));
         });
         return List.copyOf(result);
     }

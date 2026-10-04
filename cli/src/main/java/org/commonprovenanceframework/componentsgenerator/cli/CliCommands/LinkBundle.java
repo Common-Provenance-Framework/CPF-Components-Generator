@@ -42,6 +42,9 @@ public class LinkBundle implements Runnable {
     @Option(names = {"-K", "--from-key-path"}, description = "signing key of the referenced bundle's organization; when set the referenced bundle is updated with a forward connector")
     String fromKeyPath;
 
+    @Option(names = {"-V", "--from-version-bundle-id"}, description = "version of the referenced bundle the forward connector is added to; defaults to --from-bundle-id")
+    String fromVersionBundleId;
+
     @Option(names = {"-s", "--storage-base-url"}, required = true, description = "base url of prov storage")
     String storageUrlBase;
 
@@ -62,7 +65,12 @@ public class LinkBundle implements Runnable {
                 keyPath,
                 bundleName,
                 branching,
-                List.of(new LinkSource(fromOrganizationId, fromBundleId, fromConnectorId, fromKeyPath)),
+                List.of(new LinkSource(
+                        fromOrganizationId,
+                        fromBundleId,
+                        fromConnectorId,
+                        fromKeyPath,
+                        fromVersionBundleId == null ? fromBundleId : fromVersionBundleId)),
                 outputFolder,
                 createGraph
         );

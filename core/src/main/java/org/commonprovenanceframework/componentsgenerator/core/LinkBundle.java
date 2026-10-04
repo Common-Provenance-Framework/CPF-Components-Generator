@@ -9,6 +9,7 @@ import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.vanilla.ProvFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +74,12 @@ class LinkBundle {
                 HashAlgorithms.SHA256,
                 source.organizationId()
             ));
-            resolved.add(new ResolvedSource(source, fromCpm, fromConnector));
+            var versionCpm = source.versionBundleId().equals(source.bundleId())
+                ? fromCpm
+                : new CpmDocument(ProvenanceStorageClient.getDocument(
+                    storageUrlBase, source.organizationId(), source.versionBundleId()).getDocument(),
+                    pF, cPF, new CpmOrderedFactory());
+            resolved.add(new ResolvedSource(source, versionCpm, fromConnector));
         }
 
         var generator = new ComponentGenerator(storageUrlBaseInternal, organizationId);
@@ -89,6 +95,7 @@ class LinkBundle {
             false
         );
 
+        var sourceVersions = new LinkedHashMap<String, String>();
         for (ResolvedSource source : resolved) {
             if (source.source().keyPath() == null) {
                 continue;
@@ -125,6 +132,9 @@ class LinkBundle {
                 source.source().keyPath(),
                 false
             );
+            sourceVersions.put(source.source().bundleId(), bundle.getId().getLocalPart());
+            System.out.println("Stored version " + bundle.getId().getLocalPart()
+                + " of bundle " + source.source().bundleId() + " with a forward link");
         }
 
         if (outputFolder != null) {
@@ -137,7 +147,8 @@ class LinkBundle {
         return new GeneratedBundle(
             bundleName,
             newDocument.getBundleId().getLocalPart(),
-            newDocument.getForwardConnectors().stream().map(fc -> fc.getId().getLocalPart()).toList());
+            newDocument.getForwardConnectors().stream().map(fc -> fc.getId().getLocalPart()).toList(),
+            sourceVersions);
     }
 
     private record ResolvedSource(LinkSource source, CpmDocument document, INode connector) {
