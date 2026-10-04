@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 class PopulateBundle {
-    public static void Execute(
+    public static String Execute(
             String bundlePath,
             String storageUrlBase,
             String orgId,
@@ -52,8 +52,7 @@ class PopulateBundle {
                 .filter(fc -> fc.getId().getLocalPart().equals(connectorId))
                 .findFirst();
         if (connectorOptional.isEmpty()) {
-            System.err.printf("No connector found for id: %s%n", connectorId);
-            return;
+            throw new IllegalStateException("No forward connector " + connectorId + " in " + orgId + "/" + bundleId);
         }
 
         // Get backward connectors from which forward connector was derived
@@ -130,12 +129,14 @@ class PopulateBundle {
                     keyPath,
                     true
             );
+            System.out.println("Stored version " + newId.getLocalPart() + " of bundle " + bundleId);
         }
 
         if (outputFolder != null) {
             var path = outputFolder + newId.getLocalPart();
             ComponentGenerator.exportDocument(doc, path, createGraph);
         }
+        return newId.getLocalPart();
     }
 
     private static QualifiedName CpmQualifiedName(String name, org.openprovenance.prov.model.ProvFactory pf) {

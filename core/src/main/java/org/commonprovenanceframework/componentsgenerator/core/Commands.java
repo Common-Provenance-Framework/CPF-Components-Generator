@@ -29,7 +29,7 @@ public class Commands {
     }
 
 
-    public static void PopulateBundle(
+    public static String PopulateBundle(
             String bundlePath,
             String storageUrlBase,
             String orgId,
@@ -43,7 +43,7 @@ public class Commands {
             String outputFolder,
             boolean createGraph
     ) {
-        PopulateBundle.Execute(
+        return PopulateBundle.Execute(
                 bundlePath,
                 storageUrlBase,
                 orgId,
