@@ -141,6 +141,7 @@ class ComponentGenerator {
         mainActivity.setGenerated(forwardConnectors.stream().map(Connector::getId).toList());
         mainActivity.setUsed(backwardConnectors.stream().map(bc -> new MainActivityUsed(bc.getId())).toList());
         mainActivity.setReferencedMetaBundleId(pF.newQualifiedName(MetaUrl, bundleName + "_meta", MetaPrefix));
+        mainActivity.setReferencedMetaBundleSpecV(CpmSpecVersion);
 
         var currentAgentId = pF.newQualifiedName(OrgUrl, OrgId, OrgPrefix);
         var currentAgent = new CurrentAgent(currentAgentId);
@@ -177,10 +178,25 @@ class ComponentGenerator {
         spec_fc.setReferencedBundleHashValue(hash);
         spec_fc.setHashAlg(HashAlgorithms.SHA256);
         spec_fc.setSpecializationOf(fc.getId());
+        spec_fc.setReferencedBundleSpecV(CpmSpecVersion);
+        spec_fc.setReferencedMetaBundleSpecV(CpmSpecVersion);
+        spec_fc.setProvenanceServiceUri(StorageUrl);
+        var receiverAgentId = pF.newQualifiedName(OrgUrl, OrgId, OrgPrefix);
+        spec_fc.setAttributedTo(new ConnectorAttributed(receiverAgentId));
 
         var document = cpmDocument.toDocument();
         var bundle = ((Bundle) document.getStatementOrBundle().getFirst());
         bundle.getStatement().addAll(connectorStatements(templateProvMapper, bundleId, List.of(), List.of(spec_fc)));
+        var receiverType = pF.newQualifiedName(CpmNamespaceUrl, CpmType.RECEIVER_AGENT.toString(), CpmPrefix);
+        var existingAgent = bundle.getStatement().stream()
+            .filter(statement -> statement instanceof Agent agent && agent.getId().equals(receiverAgentId))
+            .map(Agent.class::cast)
+            .findFirst();
+        if (existingAgent.isEmpty()) {
+            bundle.getStatement().addAll(templateProvMapper.toStatementsStream(new ReceiverAgent(receiverAgentId)).toList());
+        } else if (existingAgent.get().getType().stream().noneMatch(type -> receiverType.equals(type.getValue()))) {
+            pF.addType(existingAgent.get(), receiverType);
+        }
         var originalLocalPartPrefix = bundleId.getLocalPart().split("-v")[0];
         bundle.setId(pF.newQualifiedName(bundleId.getNamespaceURI(), originalLocalPartPrefix + "-v" + System.currentTimeMillis(), bundleId.getPrefix()));
 
