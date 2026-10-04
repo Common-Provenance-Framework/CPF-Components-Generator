@@ -48,8 +48,11 @@ class CustomSerializer {
             ObjectMapper mapper = new ObjectMapper();
 
             JsonNode json = mapper.readTree(inputStream);
+            // TODO This is here only to be conformant with CPF standard. @id is brought here by ProvToolbox
+            // TODO Fix is to first happen in ProvToolbox. After that is done, remove the three following lines.
             removeJsonKeyRecursive((ObjectNode) json, "@id");
             moveDocumentPrefixIntoBundles((ObjectNode) json);
+            renameBundleStatementKey((ObjectNode) json, "qualifiedSpecializationOf", "specializationOf");
 
             return json.toString();
         } catch (IOException e) {
@@ -93,6 +96,25 @@ class CustomSerializer {
             reordered.set("prefix", bundlePrefix);
             reordered.setAll(bundleNode);
             bundleEntry.setValue(reordered);
+        }
+    }
+
+    private void renameBundleStatementKey(ObjectNode root, String from, String to) {
+        JsonNode bundles = root.get("bundle");
+        if (bundles == null || !bundles.isObject()) {
+            return;
+        }
+
+        for (JsonNode bundle : bundles) {
+            if (!bundle.isObject() || !bundle.has(from) || !bundle.get(from).isObject()) {
+                continue;
+            }
+            ObjectNode bundleNode = (ObjectNode) bundle;
+            ObjectNode statements = (ObjectNode) bundleNode.remove(from);
+            ObjectNode target = bundleNode.has(to) && bundleNode.get(to).isObject()
+                    ? (ObjectNode) bundleNode.get(to)
+                    : bundleNode.putObject(to);
+            target.setAll(statements);
         }
     }
 
