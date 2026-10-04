@@ -155,7 +155,8 @@ class GenerateChain {
                                 doc.getBundleId(),
                                 pF.newQualifiedName(metaUrl, doc.getBundleId().getLocalPart() + "_meta", metaPrefix),
                                 CustomSerializer.ProvStorageJsonHash(documentJson),
-                                HashAlgorithms.SHA256
+                                HashAlgorithms.SHA256,
+                                organizationId
                         )
                 );
             }

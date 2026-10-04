@@ -1,5 +1,6 @@
 package org.commonprovenanceframework.componentsgenerator.core;
 
+import cz.muni.fi.cpm.constants.CpmType;
 import cz.muni.fi.cpm.divided.ordered.CpmOrderedFactory;
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
@@ -25,6 +26,9 @@ class ComponentGenerator {
     private final String MetaPrefix = "meta";
     private final String StorageUrl;
     private final String StoragePrefix = "storage";
+    private final String OrgUrl;
+    private final String OrgPrefix = "org";
+    private final String OrgId;
 
     private final ProvFactory pF;
     private final ICpmProvFactory cPF;
@@ -33,6 +37,8 @@ class ComponentGenerator {
     public ComponentGenerator(String storageUrlBase, String orgId) {
         MetaUrl = storageUrlBase + "api/v1/documents/meta/";
         StorageUrl = storageUrlBase + "api/v1/organizations/" + orgId + "/documents/";
+        OrgUrl = storageUrlBase + "api/v1/organizations/";
+        OrgId = orgId;
 
         pF = new org.openprovenance.prov.vanilla.ProvFactory();
         cPF = new CpmProvFactory(pF);
@@ -47,7 +53,7 @@ class ComponentGenerator {
         Map<QualifiedName, List<QualifiedName>> mappings
     ) {
         TraversalInformation ti = new TraversalInformation();
-        ti.setPrefixes(Map.of(CpmPrefix, CpmNamespaceUrl, StoragePrefix, StorageUrl, MetaPrefix, MetaUrl));
+        ti.setPrefixes(Map.of(CpmPrefix, CpmNamespaceUrl, StoragePrefix, StorageUrl, MetaPrefix, MetaUrl, OrgPrefix, OrgUrl));
         ti.setBundleName(pF.newQualifiedName(StorageUrl, bundleName, StoragePrefix));
 
         if (fcCount <= 0) {
@@ -66,12 +72,7 @@ class ComponentGenerator {
 
         // Generate backward connectors
         var backwardConnectors = bcs.stream().map(data -> {
-            var referenceBundleId = data.getReferenceBundleId();
-            var bcAgentId = pF.newQualifiedName(
-                referenceBundleId.getNamespaceURI(),
-                "SenderAgent-" + referenceBundleId.getLocalPart(),
-                referenceBundleId.getPrefix()
-            );
+            var bcAgentId = pF.newQualifiedName(OrgUrl, data.getOrganizationId(), OrgPrefix);
             var agents = ti.getSenderAgents();
             if (agents.stream().filter(a -> a.getId().equals(bcAgentId)).findAny().isEmpty()) {
                 var bcAgent = new SenderAgent(bcAgentId);
@@ -99,8 +100,6 @@ class ComponentGenerator {
         }).toList();
         var allConnectors = new ArrayList<>(backwardConnectors);
         rbcs.forEach(data -> {
-            var referenceBundleId = data.getReferenceBundleId();
-
             var previousBundleFc = data.getConnectorId();
             var bc = new BackwardConnector(previousBundleFc);
 
@@ -111,7 +110,7 @@ class ComponentGenerator {
             bc.setReferencedBundleHashValue(data.getReferenceBundleHash());
             bc.setHashAlg(data.getReferenceBundleHashAlgorithm());
 
-            var agentId = pF.newQualifiedName(referenceBundleId.getNamespaceURI(), "SenderAgent-" + referenceBundleId.getLocalPart(), referenceBundleId.getPrefix());
+            var agentId = pF.newQualifiedName(OrgUrl, data.getOrganizationId(), OrgPrefix);
             bc.setAttributedTo(new ConnectorAttributed(agentId));
             if (ti.getSenderAgents().stream().noneMatch(a -> a.getId().equals(agentId))) {
                 var agent = new SenderAgent(agentId);
@@ -142,6 +141,18 @@ class ComponentGenerator {
         mainActivity.setGenerated(forwardConnectors.stream().map(Connector::getId).toList());
         mainActivity.setUsed(backwardConnectors.stream().map(bc -> new MainActivityUsed(bc.getId())).toList());
         mainActivity.setReferencedMetaBundleId(pF.newQualifiedName(MetaUrl, bundleName + "_meta", MetaPrefix));
+
+        var currentAgentId = pF.newQualifiedName(OrgUrl, OrgId, OrgPrefix);
+        var currentAgent = new CurrentAgent(currentAgentId);
+        if (ti.getSenderAgents().removeIf(a -> a.getId().equals(currentAgentId))) {
+            currentAgent.setAttributes(new ArrayList<>(List.of(pF.newAttribute(
+                Attribute.AttributeKind.PROV_TYPE,
+                pF.newQualifiedName(CpmNamespaceUrl, CpmType.SENDER_AGENT.toString(), CpmPrefix),
+                pF.getName().PROV_QUALIFIED_NAME
+            ))));
+        }
+        ti.setCurrentAgent(currentAgent);
+        mainActivity.setAssociatedWith(new ConnectorAttributed(currentAgentId));
 
         var document = templateProvMapper.toProvDocument(ti);
 

@@ -70,7 +70,8 @@ class LinkBundle {
                     StoragePrefix + "_" + source.organizationId()),
                 pF.newQualifiedName(metaUrl, source.bundleId() + "_meta", MetaPrefix),
                 fromDocument.getHash(),
-                HashAlgorithms.SHA256
+                HashAlgorithms.SHA256,
+                source.organizationId()
             ));
             resolved.add(new ResolvedSource(source, fromCpm, fromConnector));
         }
