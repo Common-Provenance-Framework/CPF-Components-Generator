@@ -93,7 +93,6 @@ class ProvenanceStorageClient {
             var base64Doc = root.hasNonNull("graph") ? root.path("graph").asText() : root.path("document").asText();
             var hash = documentDigest(root);
             JsonNode documentJsonNode = mapper.readTree(Base64.getDecoder().decode(base64Doc));
-            CustomSerializer.AddIdToBundle(documentJsonNode);
 
             var docJson = documentJsonNode.toString().replace("https://openprovenance.org/blank#", "https://openprovenance.org/blank");
             InputStream stream = new ByteArrayInputStream(docJson.getBytes(StandardCharsets.UTF_8));
