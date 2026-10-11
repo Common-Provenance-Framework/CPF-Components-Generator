@@ -16,6 +16,7 @@ import java.util.Map;
 class LinkBundle {
     private static final String StoragePrefix = "storage";
     private static final String MetaPrefix = "meta";
+    private static final String OrgPrefix = "org";
 
     public static GeneratedBundle Execute(
         StorageEndpoint storage,
@@ -50,10 +51,14 @@ class LinkBundle {
             if (source.organizationId() == null || source.bundleId() == null) {
                 throw new IllegalArgumentException("Source organization id and bundle id must be set.");
             }
-            var fromStorageUrl = storage.documentsNamespace(source.organizationId());
+            var fromStorage = source.storage() == null ? storage : source.storage();
+            if (fromStorage.baseUrl() == null) {
+                throw new IllegalArgumentException("Source storage base url must be set.");
+            }
+            var fromStorageUrl = fromStorage.documentsNamespace(source.organizationId());
 
             var fromDocument = ProvenanceStorageClient.getDocument(
-                storageUrlBase, source.organizationId(), source.bundleId());
+                fromStorage.baseUrl(), source.organizationId(), source.bundleId());
             var fromCpm = new CpmDocument(fromDocument.getDocument(), pF, cPF, new CpmOrderedFactory());
 
             INode fromConnector = fromCpm.getForwardConnectors().stream()
@@ -64,21 +69,24 @@ class LinkBundle {
                     "No forward connector " + source.connectorId()
                         + " in " + source.organizationId() + "/" + source.bundleId()));
 
+            var sameStorage = fromStorage.namespaceUrl().equals(storage.namespaceUrl());
             backwardConnectors.add(new ForwardConnectorMetadata(
                 fromConnector.getId(),
                 pF.newQualifiedName(fromStorageUrl, source.bundleId(),
                     StoragePrefix + "_" + source.organizationId()),
-                pF.newQualifiedName(metaUrl, source.bundleId() + "_meta", MetaPrefix),
+                pF.newQualifiedName(fromStorage.metaNamespace(), source.bundleId() + "_meta",
+                    prefix(MetaPrefix, source.organizationId(), sameStorage)),
                 fromDocument.getHash(),
                 HashAlgorithms.SHA256,
-                source.organizationId()
+                pF.newQualifiedName(fromStorage.organizationsNamespace(), source.organizationId(),
+                    prefix(OrgPrefix, source.organizationId(), sameStorage))
             ));
             var versionCpm = source.versionBundleId().equals(source.bundleId())
                 ? fromCpm
                 : new CpmDocument(ProvenanceStorageClient.getDocument(
-                    storageUrlBase, source.organizationId(), source.versionBundleId()).getDocument(),
+                    fromStorage.baseUrl(), source.organizationId(), source.versionBundleId()).getDocument(),
                     pF, cPF, new CpmOrderedFactory());
-            resolved.add(new ResolvedSource(source, versionCpm, fromConnector));
+            resolved.add(new ResolvedSource(source, fromStorage, versionCpm, fromConnector));
         }
 
         var generator = new ComponentGenerator(storage, organizationId);
@@ -100,22 +108,32 @@ class LinkBundle {
                 continue;
             }
             var receiverBundleId = newDocument.getBundleId();
-            var receiverPrefix = StoragePrefix + "_" + organizationId;
+            var sameStorage = source.storage().namespaceUrl().equals(storage.namespaceUrl());
+            var receiver = pF.newQualifiedName(
+                receiverBundleId.getNamespaceURI(),
+                receiverBundleId.getLocalPart(),
+                StoragePrefix + "_" + organizationId);
+            var receiverMeta = pF.newQualifiedName(metaUrl, bundleName + "_meta",
+                prefix(MetaPrefix, organizationId, sameStorage));
+            var receiverAgent = pF.newQualifiedName(storage.organizationsNamespace(), organizationId,
+                prefix(OrgPrefix, organizationId, sameStorage));
 
             var referencedBundle = generator.addSpecializedForwardConnector(
                 source.document(),
                 source.connector(),
-                pF.newQualifiedName(
-                    receiverBundleId.getNamespaceURI(),
-                    receiverBundleId.getLocalPart(),
-                    receiverPrefix),
-                pF.newQualifiedName(metaUrl, bundleName + "_meta", MetaPrefix),
-                CustomSerializer.ProvStorageJsonHash(newDocumentJson)
+                receiver,
+                receiverMeta,
+                CustomSerializer.ProvStorageJsonHash(newDocumentJson),
+                receiverAgent
             );
 
             var bundle = (Bundle) referencedBundle.getStatementOrBundle().getFirst();
             if (bundle.getNamespace() != null) {
-                bundle.getNamespace().register(receiverPrefix, receiverBundleId.getNamespaceURI());
+                bundle.getNamespace().register(receiver.getPrefix(), receiver.getNamespaceURI());
+                if (!sameStorage) {
+                    bundle.getNamespace().register(receiverMeta.getPrefix(), receiverMeta.getNamespaceURI());
+                    bundle.getNamespace().register(receiverAgent.getPrefix(), receiverAgent.getNamespaceURI());
+                }
             }
             var currentId = bundle.getId();
             bundle.setId(pF.newQualifiedName(
@@ -124,7 +142,7 @@ class LinkBundle {
                 currentId.getPrefix()));
 
             ProvenanceStorageClient.storeDocument(
-                storageUrlBase,
+                source.storage().baseUrl(),
                 serializer.createProvStorageJson(referencedBundle),
                 bundle.getId().getLocalPart(),
                 source.source().organizationId(),
@@ -150,6 +168,11 @@ class LinkBundle {
             sourceVersions);
     }
 
-    private record ResolvedSource(LinkSource source, CpmDocument document, INode connector) {
+    // A document's own prefixes already name its storage, so another storage needs prefixes of its own.
+    private static String prefix(String prefix, String organizationId, boolean sameStorage) {
+        return sameStorage ? prefix : prefix + "_" + organizationId;
+    }
+
+    private record ResolvedSource(LinkSource source, StorageEndpoint storage, CpmDocument document, INode connector) {
     }
 }

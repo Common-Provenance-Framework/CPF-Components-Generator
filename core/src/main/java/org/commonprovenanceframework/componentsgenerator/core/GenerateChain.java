@@ -116,7 +116,8 @@ class GenerateChain {
                         bc,
                         doc.getBundleId(),
                         pF.newQualifiedName(metaUrl, doc.getBundleId().getLocalPart() + "_meta", metaPrefix),
-                        CustomSerializer.ProvStorageJsonHash(documentJson)
+                        CustomSerializer.ProvStorageJsonHash(documentJson),
+                        documentGenerator.organization()
                 );
                 var referenceBundleJson = serializer.createProvStorageJson(referencedBundle);
 
@@ -161,7 +162,7 @@ class GenerateChain {
                                 pF.newQualifiedName(metaUrl, doc.getBundleId().getLocalPart() + "_meta", metaPrefix),
                                 CustomSerializer.ProvStorageJsonHash(documentJson),
                                 HashAlgorithms.SHA256,
-                                organizationId
+                                documentGenerator.organization()
                         )
                 );
             }

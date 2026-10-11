@@ -58,6 +58,12 @@ public class LinkBundle implements Runnable {
     @Option(names = {"-S", "--storage-namespace-url"}, description = "url the storage's document identifiers start with; defaults to --storage-base-url")
     String storageNamespaceUrl;
 
+    @Option(names = {"--from-storage-base-url"}, description = "base url of the referenced bundle's prov storage; defaults to --storage-base-url")
+    String fromStorageUrlBase;
+
+    @Option(names = {"--from-storage-namespace-url"}, description = "url the referenced bundle's storage document identifiers start with; defaults to --from-storage-base-url")
+    String fromStorageNamespaceUrl;
+
     @Override
     public void run() {
         Commands.LinkBundle(
@@ -71,7 +77,10 @@ public class LinkBundle implements Runnable {
                         fromBundleId,
                         fromConnectorId,
                         fromKeyPath,
-                        fromVersionBundleId == null ? fromBundleId : fromVersionBundleId)),
+                        fromVersionBundleId == null ? fromBundleId : fromVersionBundleId,
+                        fromStorageUrlBase == null && fromStorageNamespaceUrl == null
+                                ? null
+                                : new StorageEndpoint(fromStorageUrlBase, fromStorageNamespaceUrl))),
                 outputFolder,
                 createGraph
         );

@@ -45,6 +45,10 @@ class ComponentGenerator {
         templateProvMapper = new TemplateProvMapper(cPF);
     }
 
+    public QualifiedName organization() {
+        return pF.newQualifiedName(OrgUrl, OrgId, OrgPrefix);
+    }
+
     public CpmDocument createBundle(
         String bundleName,
         int fcCount,
@@ -72,7 +76,7 @@ class ComponentGenerator {
 
         // Generate backward connectors
         var backwardConnectors = bcs.stream().map(data -> {
-            var bcAgentId = pF.newQualifiedName(OrgUrl, data.getOrganizationId(), OrgPrefix);
+            var bcAgentId = data.getOrganization();
             var agents = ti.getSenderAgents();
             if (agents.stream().filter(a -> a.getId().equals(bcAgentId)).findAny().isEmpty()) {
                 var bcAgent = new SenderAgent(bcAgentId);
@@ -110,7 +114,7 @@ class ComponentGenerator {
             bc.setReferencedBundleHashValue(data.getReferenceBundleHash());
             bc.setHashAlg(data.getReferenceBundleHashAlgorithm());
 
-            var agentId = pF.newQualifiedName(OrgUrl, data.getOrganizationId(), OrgPrefix);
+            var agentId = data.getOrganization();
             bc.setAttributedTo(new ConnectorAttributed(agentId));
             if (ti.getSenderAgents().stream().noneMatch(a -> a.getId().equals(agentId))) {
                 var agent = new SenderAgent(agentId);
@@ -143,7 +147,7 @@ class ComponentGenerator {
         mainActivity.setReferencedMetaBundleId(pF.newQualifiedName(MetaUrl, bundleName + "_meta", MetaPrefix));
         mainActivity.setReferencedMetaBundleSpecV(CpmSpecVersion);
 
-        var currentAgentId = pF.newQualifiedName(OrgUrl, OrgId, OrgPrefix);
+        var currentAgentId = organization();
         var currentAgent = new CurrentAgent(currentAgentId);
         if (ti.getSenderAgents().removeIf(a -> a.getId().equals(currentAgentId))) {
             currentAgent.setAttributes(new ArrayList<>(List.of(pF.newAttribute(
@@ -161,7 +165,7 @@ class ComponentGenerator {
         return new CpmDocument(document, pF, cPF, new CpmOrderedFactory());
     }
 
-    public Document addSpecializedForwardConnector(CpmDocument cpmDocument, INode connector, QualifiedName referencedBundleId, QualifiedName metaId, String hash) {
+    public Document addSpecializedForwardConnector(CpmDocument cpmDocument, INode connector, QualifiedName referencedBundleId, QualifiedName metaId, String hash, QualifiedName receiverAgentId) {
         var bundleId = cpmDocument.getBundleId();
         var connectorIdLocal = connector.getId().getLocalPart();
         var fc = cpmDocument
@@ -181,7 +185,6 @@ class ComponentGenerator {
         spec_fc.setReferencedBundleSpecV(CpmSpecVersion);
         spec_fc.setReferencedMetaBundleSpecV(CpmSpecVersion);
         spec_fc.setProvenanceServiceUri(StorageUrl);
-        var receiverAgentId = pF.newQualifiedName(OrgUrl, OrgId, OrgPrefix);
         spec_fc.setAttributedTo(new ConnectorAttributed(receiverAgentId));
 
         var document = cpmDocument.toDocument();

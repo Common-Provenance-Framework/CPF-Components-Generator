@@ -9,6 +9,7 @@ Command-line tools for managing Common Provenance Model (CPM) organizations, cer
     - [register-org](#register-org)
     - [generate-chain](#generate-chain)
     - [populate-bundle](#populate-bundle)
+    - [link-bundle](#link-bundle)
 ---
 
 ## Requirements 
@@ -277,6 +278,60 @@ The command generates:
 - `src/main/resources/output/fixed.provn` - PROVN representation of the updated bundle
 - `src/main/resources/output/fixed.svg` - SVG visualization of the updated bundle
 - Updated bundle stored in the provenance storage service with versioned ID
+
+[Back to top](#table-of-contents)
+
+---
+
+### link-bundle
+
+Creates a bundle that continues a bundle of another organization.
+
+#### Description
+
+The `link-bundle` command creates a new bundle whose backward connector consumes a forward connector of an existing bundle. The existing bundle may be held by another store; it is then referenced by that store's identifiers, including its meta-bundle and its organization. When the signing key of the existing bundle's organization is given, the command also stores a new version of that bundle, in its own store, with a specialized forward connector pointing to the new bundle.
+
+#### Usage
+
+```bash
+link-bundle -s <storage-url> -O <org-id> -k <key-path> -o <bundle-name> -F <from-org-id> -B <from-bundle-id> [options]
+```
+
+#### Options
+
+- `"-o", "--bundle-name"` - Required attribute. Name of the new bundle.
+- `"-O", "--organization-id"` - Required attribute. Identifier of the organisation the new bundle belongs to.
+- `"-k", "--key-path"` - Required attribute. Path to the signing key of that organisation.
+- `"-s", "--storage-base-url"` - Required attribute. URI of the CPF store the new bundle is stored in.
+- `"-S", "--storage-namespace-url"` - URL that store's document identifiers start with, see [Storage urls](#storage-urls). Defaults to the storage base url.
+- `"-b", "--branching"` - Number of forward connectors in the new bundle. Must be a positive integer. Defaults to 1.
+- `"-F", "--from-organization-id"` - Required attribute. Identifier of the organisation owning the existing bundle.
+- `"-B", "--from-bundle-id"` - Required attribute. Identifier of the existing bundle.
+- `"-c", "--from-connector-id"` - Forward connector of the existing bundle to continue from. Defaults to its first forward connector.
+- `"-K", "--from-key-path"` - Path to the signing key of the existing bundle's organisation. When set, the existing bundle gets a new version with a specialized forward connector.
+- `"-V", "--from-version-bundle-id"` - Version of the existing bundle the specialized forward connector is added to. Defaults to the existing bundle's identifier.
+- `"--from-storage-base-url"` - URI of the CPF store holding the existing bundle. Defaults to the storage base url.
+- `"--from-storage-namespace-url"` - URL that store's document identifiers start with. Defaults to the from storage base url.
+- `"-d", "--directory"` - The path to a directory, where a JSON serialisation of the new bundle will be stored.
+- `"-g", "--create-graph"` - Boolean option. Controls whether a visual representation of the new bundle will be created in the output directory. It is ignored if the output directory is not set. Requires Graphviz to be installed.
+
+#### Examples
+
+**Continue a bundle held by the same store:**
+
+```bash
+link-bundle   -s http://localhost:8001   -O pathology-lab   -k ./keys/pathology-lab.key   -o biopsy-analysis   -F hospital-org-001   -B medical-procedure4   -K ./keys/hospital-org-001.key
+```
+
+**Continue a bundle held by another store:**
+
+```bash
+link-bundle   -s http://localhost:8002   -O pathology-lab   -k ./keys/pathology-lab.key   -o biopsy-analysis   -F hospital-org-001   -B medical-procedure4   -K ./keys/hospital-org-001.key   --from-storage-base-url http://localhost:8001
+```
+
+#### Output
+
+The command prints the identifier of the new bundle and, when `-K` is set, the identifier of the existing bundle's new version.
 
 [Back to top](#table-of-contents)
 

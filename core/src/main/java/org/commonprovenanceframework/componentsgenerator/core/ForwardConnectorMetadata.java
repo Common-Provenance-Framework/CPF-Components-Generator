@@ -9,15 +9,15 @@ class ForwardConnectorMetadata {
     private final QualifiedName referenceMetaBundleId;
     private final String referenceBundleHash;
     private final HashAlgorithms referenceBundleHashAlgorithm;
-    private final String organizationId;
+    private final QualifiedName organization;
 
-    public ForwardConnectorMetadata(QualifiedName connectorId, QualifiedName referenceBundleId, QualifiedName referenceMetaBundleId, String hash, HashAlgorithms referenceBundleHashAlgorithm, String organizationId) {
+    public ForwardConnectorMetadata(QualifiedName connectorId, QualifiedName referenceBundleId, QualifiedName referenceMetaBundleId, String hash, HashAlgorithms referenceBundleHashAlgorithm, QualifiedName organization) {
         this.connectorId = connectorId;
         this.referenceBundleId = referenceBundleId;
         this.referenceMetaBundleId = referenceMetaBundleId;
         this.referenceBundleHash = hash;
         this.referenceBundleHashAlgorithm = referenceBundleHashAlgorithm;
-        this.organizationId = organizationId;
+        this.organization = organization;
     }
 
     public QualifiedName getConnectorId() {
@@ -40,7 +40,7 @@ class ForwardConnectorMetadata {
         return referenceBundleHashAlgorithm;
     }
 
-    public String getOrganizationId() {
-        return organizationId;
+    public QualifiedName getOrganization() {
+        return organization;
     }
 }
