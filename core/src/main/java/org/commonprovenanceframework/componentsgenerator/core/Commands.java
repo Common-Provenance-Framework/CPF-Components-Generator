@@ -8,23 +8,20 @@ public class Commands {
             int branching,
             String bundleNameBase,
             String organizationId,
-            String storageUrlBase,
+            StorageEndpoint storage,
             String keyPath,
             String outputFolder,
-            boolean createGraph,
-            String storageUrlBaseInternal
-
+            boolean createGraph
     ) {
         return GenerateChain.Execute(
                 provenanceChainLength,
                 branching,
                 bundleNameBase,
                 organizationId,
-                storageUrlBase,
+                storage,
                 keyPath,
                 outputFolder,
-                createGraph,
-                storageUrlBaseInternal
+                createGraph
         );
     }
 
@@ -60,8 +57,7 @@ public class Commands {
     }
 
     public static GeneratedBundle LinkBundle(
-            String storageUrlBase,
-            String storageUrlBaseInternal,
+            StorageEndpoint storage,
             String organizationId,
             String keyPath,
             String bundleName,
@@ -71,8 +67,7 @@ public class Commands {
             boolean createGraph
     ) {
         return LinkBundle.Execute(
-                storageUrlBase,
-                storageUrlBaseInternal,
+                storage,
                 organizationId,
                 keyPath,
                 bundleName,

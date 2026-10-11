@@ -34,10 +34,10 @@ class ComponentGenerator {
     private final ICpmProvFactory cPF;
     private final TemplateProvMapper templateProvMapper;
 
-    public ComponentGenerator(String storageUrlBase, String orgId) {
-        MetaUrl = storageUrlBase + "api/v1/documents/meta/";
-        StorageUrl = storageUrlBase + "api/v1/organizations/" + orgId + "/documents/";
-        OrgUrl = storageUrlBase + "api/v1/organizations/";
+    public ComponentGenerator(StorageEndpoint storage, String orgId) {
+        MetaUrl = storage.metaNamespace();
+        StorageUrl = storage.documentsNamespace(orgId);
+        OrgUrl = storage.organizationsNamespace();
         OrgId = orgId;
 
         pF = new org.openprovenance.prov.vanilla.ProvFactory();

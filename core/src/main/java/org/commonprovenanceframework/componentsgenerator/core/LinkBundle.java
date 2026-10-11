@@ -18,8 +18,7 @@ class LinkBundle {
     private static final String MetaPrefix = "meta";
 
     public static GeneratedBundle Execute(
-        String storageUrlBase,
-        String storageUrlBaseInternal,
+        StorageEndpoint storage,
         String organizationId,
         String keyPath,
         String bundleName,
@@ -28,9 +27,10 @@ class LinkBundle {
         String outputFolder,
         boolean createGraph
     ) {
-        if (storageUrlBase == null || keyPath == null) {
+        if (storage == null || storage.baseUrl() == null || keyPath == null) {
             throw new IllegalArgumentException("Storage url base and key path must be set.");
         }
+        var storageUrlBase = storage.baseUrl();
         if (sources == null || sources.isEmpty()) {
             throw new IllegalArgumentException("At least one link source must be set.");
         }
@@ -41,7 +41,7 @@ class LinkBundle {
         var pF = new ProvFactory();
         var cPF = new CpmProvFactory(pF);
         var serializer = new CustomSerializer();
-        var metaUrl = storageUrlBaseInternal + "api/v1/documents/meta/";
+        var metaUrl = storage.metaNamespace();
 
         var backwardConnectors = new ArrayList<ForwardConnectorMetadata>();
         var resolved = new ArrayList<ResolvedSource>();
@@ -50,8 +50,7 @@ class LinkBundle {
             if (source.organizationId() == null || source.bundleId() == null) {
                 throw new IllegalArgumentException("Source organization id and bundle id must be set.");
             }
-            var fromStorageUrl = storageUrlBaseInternal
-                + "api/v1/organizations/" + source.organizationId() + "/documents/";
+            var fromStorageUrl = storage.documentsNamespace(source.organizationId());
 
             var fromDocument = ProvenanceStorageClient.getDocument(
                 storageUrlBase, source.organizationId(), source.bundleId());
@@ -82,7 +81,7 @@ class LinkBundle {
             resolved.add(new ResolvedSource(source, versionCpm, fromConnector));
         }
 
-        var generator = new ComponentGenerator(storageUrlBaseInternal, organizationId);
+        var generator = new ComponentGenerator(storage, organizationId);
         var newDocument = generator.createBundle(bundleName, branching, backwardConnectors, List.of(), Map.of());
         var newDocumentJson = serializer.createProvStorageJson(newDocument.toDocument());
 

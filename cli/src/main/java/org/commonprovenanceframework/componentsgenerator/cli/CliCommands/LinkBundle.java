@@ -2,6 +2,7 @@ package org.commonprovenanceframework.componentsgenerator.cli.CliCommands;
 
 import org.commonprovenanceframework.componentsgenerator.core.Commands;
 import org.commonprovenanceframework.componentsgenerator.core.LinkSource;
+import org.commonprovenanceframework.componentsgenerator.core.StorageEndpoint;
 import picocli.CommandLine.*;
 
 import java.util.List;
@@ -54,13 +55,13 @@ public class LinkBundle implements Runnable {
     @Option(names = {"-g", "--create-graph"}, description = "Creates a graph representation of the bundle. Will be ignored is directory is not set. Requires graphviz to work.")
     boolean createGraph;
 
-    String storageUrlBaseInternal = "http://prov-storage-hospital:8000/";
+    @Option(names = {"-S", "--storage-namespace-url"}, description = "url the storage's document identifiers start with; defaults to --storage-base-url")
+    String storageNamespaceUrl;
 
     @Override
     public void run() {
         Commands.LinkBundle(
-                storageUrlBase,
-                storageUrlBaseInternal,
+                new StorageEndpoint(storageUrlBase, storageNamespaceUrl),
                 organizationId,
                 keyPath,
                 bundleName,

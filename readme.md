@@ -26,7 +26,15 @@ The provenance storage and trusted party services are part of the separate `dbpr
 Build the java CLI from the root of this repository
 - `mvn package`
 Run the desired command with necessary options
-- `java -jar ./cli/target/cli-2.0.0.jar <command> <options>`
+- `java -jar ./cli/target/cli-3.0.0.jar <command> <options>`
+
+### Storage urls
+
+A store is reached through its base url (`-s`), but the identifiers inside documents must start with the url the store knows itself by (its `STORE_URL`). When the store is reachable under its own name the two are the same and `-s` is enough. When it is not, for example through a port published on `localhost`, pass the store's own url with `-S`:
+
+```bash
+generate-chain -s http://localhost:8001 -S http://prov-storage-hospital:8000 ...
+```
 
 ## Commands
 
@@ -138,6 +146,7 @@ generate-chain -s <storage-url> -o <bundle-name> -d <output-dir> -L <length> -b 
 - `"-b", "–branching"` - Required attribute, must be an integer greater than 0. Determines the number of forward connectors in the bundle at the beginning of the chain. The forward connectors will be used as input to the subsequent main activity
 - `"-O", "–organization-id"` - Required attribute. Identifier of the organisation under which the generated bundles will be stored.
 - `"-s", "–storage-base-url"` - URI of the CPF store where generated bundles will be stored. Required if directory option is not set.
+- `"-S", "–storage-namespace-url"` - URL the store's document identifiers start with, see [Storage urls](#storage-urls). Defaults to the storage base url; required if the storage base url is not set.
 - `"-k", "–key-path"` - Path to the signing key associated with the certificate associated with the registered organisation. It is needed to successfully store the created and updated bundles in the CPF store. Required if storage base url is set.
 - `"-d", "–directory"` - The path to a directory, where a JSON serialisation of the bundle will be stored. Required if storage base url option is not set.
 - `"-g", "–create-graph"` - Boolean option. Controls whether a visual representation of the given bundle will be created in the output directory. It is ignored if the output directory is not set. Requires graphviz installed

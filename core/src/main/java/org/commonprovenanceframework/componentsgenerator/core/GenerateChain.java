@@ -25,12 +25,16 @@ class GenerateChain {
             int branching,
             String bundleNameBase,
             String organizationId,
-            String storageUrlBase,
+            StorageEndpoint storage,
             String keyPath,
             String outputFolder,
-            boolean createGraph,
-            String storageUrlBaseInternal
+            boolean createGraph
     ) {
+        if (storage == null) {
+            throw new RuntimeException("Storage must be set, its namespace url is part of every identifier.");
+        }
+        var storageUrlBase = storage.baseUrl();
+
         if (provenanceChainLength <= 0) {
             throw new RuntimeException("Provenance chain length must be a positive integer");
         }
@@ -48,7 +52,7 @@ class GenerateChain {
         }
 
         var metaPrefix = "meta";
-        var metaUrl = storageUrlBaseInternal + "api/v1/documents/meta/";
+        var metaUrl = storage.metaNamespace();
 
         var pF = new ProvFactory();
         var cPF = new CpmProvFactory(pF);
@@ -65,7 +69,7 @@ class GenerateChain {
 
         for (int i = 0; i < provenanceChainLength; i++) {
             System.out.println("Starting index: " + i);
-            var documentGenerator = new ComponentGenerator(storageUrlBaseInternal, organizationId);
+            var documentGenerator = new ComponentGenerator(storage, organizationId);
             var doc = documentGenerator.createBundle(
                     provenanceChainLength == 1 ? bundleNameBase : bundleNameBase + i,
                     i == 0 ? branching : 1,

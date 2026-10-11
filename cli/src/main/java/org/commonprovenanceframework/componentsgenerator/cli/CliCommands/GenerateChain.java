@@ -1,6 +1,7 @@
 package org.commonprovenanceframework.componentsgenerator.cli.CliCommands;
 
 import org.commonprovenanceframework.componentsgenerator.core.Commands;
+import org.commonprovenanceframework.componentsgenerator.core.StorageEndpoint;
 import picocli.CommandLine.*;
 
 @Command(name = "generate-chain", description = "Generates a CPM provenance chain")
@@ -45,7 +46,8 @@ public class GenerateChain implements Runnable {
     @Option(names = {"-g", "--create-graph"}, description = "Creates a graph representation of the bundle. Will be ignored is directory is not set. Requires graphviz to work.")
     boolean createGraph;
 
-    String storageUrlBaseInternal = "http://prov-storage-hospital:8000/";
+    @Option(names = {"-S", "--storage-namespace-url"}, description = "url the storage's document identifiers start with; defaults to --storage-base-url")
+    String storageNamespaceUrl;
 
     @Override
     public void run() {
@@ -57,16 +59,19 @@ public class GenerateChain implements Runnable {
             throw new ParameterException(spec.commandLine(), "Key path must be set if storage url base is set");
         }
 
+        if (storageUrlBase == null && storageNamespaceUrl == null) {
+            throw new ParameterException(spec.commandLine(), "Storage namespace url must be set if storage url base is not");
+        }
+
         Commands.GenerateChain(
                 provenanceChainLength,
                 branching,
                 bundleNameBase,
                 organizationId,
-                storageUrlBase,
+                new StorageEndpoint(storageUrlBase, storageNamespaceUrl),
                 keyPath,
                 outputFolder,
-                createGraph,
-                storageUrlBaseInternal
+                createGraph
         );
     }
 }
