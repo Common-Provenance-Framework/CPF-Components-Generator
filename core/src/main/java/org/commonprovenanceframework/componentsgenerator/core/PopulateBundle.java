@@ -1,12 +1,12 @@
 package org.commonprovenanceframework.componentsgenerator.core;
 
+import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.divided.ordered.CpmOrderedFactory;
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.vanilla.CpmProvFactory;
 import org.openprovenance.prov.model.*;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 class PopulateBundle {
     public static String Execute(
@@ -20,6 +20,7 @@ class PopulateBundle {
             int backwardDistance,
             int entityCount,
             String type,
+            String externalId,
             String outputFolder,
             boolean createGraph
     ) {
@@ -29,6 +30,10 @@ class PopulateBundle {
 
         if (storageUrlBase != null && (keyPath == null || bundleId == null || orgId == null)) {
             throw new RuntimeException("Key path and bundle id are required if storage url base is set");
+        }
+
+        if (externalId == null || externalId.isBlank()) {
+            throw new RuntimeException("External id of the described object must be set");
         }
 
         var pF = new org.openprovenance.prov.vanilla.ProvFactory();
@@ -65,6 +70,16 @@ class PopulateBundle {
 
         var lastDerivedEntityId = connectorOptional.get().getId();
         var statements = new ArrayList<Statement>();
+        var entityPrefix = connectorId + "-" + type + "-entity-";
+        var firstIndex = cpmDocument.getNodes().stream()
+                .filter(node -> node.getId() != null)
+                .map(node -> node.getId().getLocalPart())
+                .filter(id -> id.startsWith(entityPrefix))
+                .map(id -> id.substring(entityPrefix.length()))
+                .filter(suffix -> suffix.matches("\\d+"))
+                .mapToInt(Integer::parseInt)
+                .max()
+                .orElse(-1) + 1;
 
         // Make sure the distance to dc is generated correctly if
         forwardDistance = forwardDistance == 0 ? (int) (Math.random() * entityCount - backwardDistance) : forwardDistance;
@@ -76,7 +91,7 @@ class PopulateBundle {
         }
 
         for (int i = 0; i < entityCount; i++) {
-            var nextEntity = pF.newEntity(CpmQualifiedName(connectorId + "-" + type + "-entity-" + i, pF));
+            var nextEntity = pF.newEntity(CpmQualifiedName(entityPrefix + (firstIndex + i), pF));
             statements.add(nextEntity);
             if (i <= forwardDistance + backwardDistance) {
                 if (i == 0) {
@@ -89,10 +104,10 @@ class PopulateBundle {
                 lastDerivedEntityId = nextEntity.getId();
             }
             if (i == forwardDistance) {
-                var valueId = UUID.randomUUID();
-                var value = pF.newOther(CpmQualifiedName(type + "Id", pF), valueId, XsdQualifiedName("string", pF));
-                pF.addType(nextEntity, CpmQualifiedName(type, pF));
-                pF.addAttribute(nextEntity, value);
+                pF.addAttribute(nextEntity, pF.newOther(
+                        CpmQualifiedName(CpmAttribute.EXTERNAL_ID.toString(), pF), externalId, XsdQualifiedName("string", pF)));
+                pF.addAttribute(nextEntity, pF.newOther(
+                        CpmQualifiedName(CpmAttribute.DESCRIBED_OBJECT_TYPE.toString(), pF), type, XsdQualifiedName("string", pF)));
                 lastDerivedEntityId = nextEntity.getId();
             }
 

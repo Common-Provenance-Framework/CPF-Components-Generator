@@ -7,6 +7,8 @@ import picocli.CommandLine.Model;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Spec;
 
+import java.util.UUID;
+
 @Command(name = "populate-bundle", description = "Populates a CPM bundles with entities of specified type")
 public class PopulateBundle implements Runnable {
     @Spec
@@ -66,6 +68,9 @@ public class PopulateBundle implements Runnable {
     @Option(names = {"-t", "--type"}, required = true, description = "type")
     String type;
 
+    @Option(names = {"-x", "--external-id"}, description = "external identifier of the described object, defaults to a random UUID")
+    String externalId = UUID.randomUUID().toString();
+
     @Option(names = {"-d", "--directory"}, description = "bundles output directory")
     String outputFolder;
 
@@ -93,6 +98,7 @@ public class PopulateBundle implements Runnable {
                 backwardDistance,
                 entityCount,
                 type,
+                externalId,
                 outputFolder,
                 createGraph
         );

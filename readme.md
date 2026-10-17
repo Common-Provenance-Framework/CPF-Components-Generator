@@ -214,7 +214,8 @@ populate-bundle -B <bundle-id> -c <connector-id> -e <entity-count> -t <type> -C 
 - `"-k", "--key-path"` - Path to the signing key of the organisation under which the bundle to update is stored. Needed for the successful update of the bundle. Required if storage base url is set.
 - `"-B", "--bundle-id"` - Required attribute. Identifier of the bundle to update.
 - `"-c", "--connector-id"` - Required attribute. Identifier of the forward connector, to which a derivation path should be created.
-- `"-t", "--type"` - Required attribute. Determines the type of the special entity.
+- `"-t", "--type"` - Required attribute. The type of the described object, written as `cpm:describedObjectType` on the typed entity.
+- `"-x", "--external-id"` - External identifier of the described object, written as `cpm:externalId` on the typed entity. Defaults to a random UUID.
 - `"-f", "--forward-distance"` - Length of the derivation path from "type" entity to the forward connector. Must be a positive integer.
 - `"-b", "--backward-distance"` - Length of the derivation path from the related backward connector to the "type" entity. Must be a positive integer. Value is ignored if the forward connectors derive from no backward connectors.
 - `"-e", "--entity-count"` - Required attribute. Must be greater than 0. Must be greater than or equal to the sum of the backward distance and forward distance. Total count of the created entities.

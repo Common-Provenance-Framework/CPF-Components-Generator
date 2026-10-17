@@ -37,6 +37,7 @@ public class Commands {
             int backwardDistance,
             int entityCount,
             String type,
+            String externalId,
             String outputFolder,
             boolean createGraph
     ) {
@@ -51,6 +52,7 @@ public class Commands {
                 backwardDistance,
                 entityCount,
                 type,
+                externalId,
                 outputFolder,
                 createGraph
         );
