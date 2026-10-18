@@ -290,7 +290,7 @@ Creates a bundle that continues a bundle of another organization.
 
 #### Description
 
-The `link-bundle` command creates a new bundle whose backward connector consumes a forward connector of an existing bundle. The existing bundle may be held by another store; it is then referenced by that store's identifiers, including its meta-bundle and its organization. When the signing key of the existing bundle's organization is given, the command also stores a new version of that bundle, in its own store, with a specialized forward connector pointing to the new bundle.
+The `link-bundle` command creates a new bundle whose backward connector consumes a forward connector of an existing bundle. The existing bundle may be held by another store; it is then referenced by that store's identifiers, including its meta-bundle and its organization. When the signing key of the existing bundle's organization is given, the command also stores a new version of that bundle, in its own store, with a specialized forward connector pointing to the new bundle. With `--redundancy BACKWARD`, the backward connectors of the existing bundle that the consumed forward connector is derived from are copied into the new bundle as redundant backward connectors, and the new backward connector is derived from each copy.
 
 #### Usage
 
@@ -313,6 +313,7 @@ link-bundle -s <storage-url> -O <org-id> -k <key-path> -o <bundle-name> -F <from
 - `"-V", "--from-version-bundle-id"` - Version of the existing bundle the specialized forward connector is added to. Defaults to the existing bundle's identifier.
 - `"--from-storage-base-url"` - URI of the CPF store holding the existing bundle. Defaults to the storage base url.
 - `"--from-storage-namespace-url"` - URL that store's document identifiers start with. Defaults to the from storage base url.
+- `"-R", "--redundancy"` - `NONE` or `BACKWARD`. With `BACKWARD`, the backward connectors the consumed forward connector is derived from are copied into the new bundle as redundant connectors. Defaults to `NONE`.
 - `"-d", "--directory"` - The path to a directory, where a JSON serialisation of the new bundle will be stored.
 - `"-g", "--create-graph"` - Boolean option. Controls whether a visual representation of the new bundle will be created in the output directory. It is ignored if the output directory is not set. Requires Graphviz to be installed.
 

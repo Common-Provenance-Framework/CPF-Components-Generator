@@ -1,17 +1,24 @@
 package org.commonprovenanceframework.componentsgenerator.core;
 
+import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.divided.ordered.CpmOrderedFactory;
 import cz.muni.fi.cpm.model.CpmDocument;
+import cz.muni.fi.cpm.model.IEdge;
 import cz.muni.fi.cpm.model.INode;
 import cz.muni.fi.cpm.template.schema.HashAlgorithms;
 import cz.muni.fi.cpm.vanilla.CpmProvFactory;
 import org.openprovenance.prov.model.Bundle;
+import org.openprovenance.prov.model.Element;
+import org.openprovenance.prov.model.LangString;
+import org.openprovenance.prov.model.Other;
+import org.openprovenance.prov.model.QualifiedName;
+import org.openprovenance.prov.model.StatementOrBundle;
 import org.openprovenance.prov.vanilla.ProvFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 class LinkBundle {
     private static final String StoragePrefix = "storage";
@@ -45,6 +52,8 @@ class LinkBundle {
         var metaUrl = storage.metaNamespace();
 
         var backwardConnectors = new ArrayList<ForwardConnectorMetadata>();
+        var redundantConnectors = new ArrayList<ForwardConnectorMetadata>();
+        var derivations = new HashMap<QualifiedName, List<QualifiedName>>();
         var resolved = new ArrayList<ResolvedSource>();
 
         for (LinkSource source : sources) {
@@ -81,6 +90,16 @@ class LinkBundle {
                 pF.newQualifiedName(fromStorage.organizationsNamespace(), source.organizationId(),
                     prefix(OrgPrefix, source.organizationId(), sameStorage))
             ));
+            if (source.redundancy() == Redundancy.BACKWARD) {
+                var duplicated = derivationSources(fromCpm, fromConnector).stream()
+                    .map(connector -> duplicate(pF, connector, storage))
+                    .toList();
+                if (!duplicated.isEmpty()) {
+                    redundantConnectors.addAll(duplicated);
+                    derivations.put(fromConnector.getId(),
+                        duplicated.stream().map(ForwardConnectorMetadata::getConnectorId).toList());
+                }
+            }
             var versionCpm = source.versionBundleId().equals(source.bundleId())
                 ? fromCpm
                 : new CpmDocument(ProvenanceStorageClient.getDocument(
@@ -90,7 +109,7 @@ class LinkBundle {
         }
 
         var generator = new ComponentGenerator(storage, organizationId);
-        var newDocument = generator.createBundle(bundleName, branching, backwardConnectors, List.of(), Map.of());
+        var newDocument = generator.createBundle(bundleName, branching, backwardConnectors, redundantConnectors, derivations);
         var newDocumentJson = serializer.createProvStorageJson(newDocument.toDocument());
 
         ProvenanceStorageClient.storeDocument(
@@ -171,6 +190,58 @@ class LinkBundle {
     // A document's own prefixes already name its storage, so another storage needs prefixes of its own.
     private static String prefix(String prefix, String organizationId, boolean sameStorage) {
         return sameStorage ? prefix : prefix + "_" + organizationId;
+    }
+
+    private static List<INode> derivationSources(CpmDocument document, INode forwardConnector) {
+        var causes = edgesFrom(forwardConnector, StatementOrBundle.Kind.PROV_DERIVATION).stream()
+            .map(edge -> edge.getCause().getId())
+            .toList();
+        return document.getBackwardConnectors().stream()
+            .filter(connector -> causes.contains(connector.getId()))
+            .toList();
+    }
+
+    private static ForwardConnectorMetadata duplicate(ProvFactory pF, INode connector, StorageEndpoint storage) {
+        var element = connector.getElements().getFirst();
+        var agent = edgesFrom(connector, StatementOrBundle.Kind.PROV_ATTRIBUTION).stream()
+            .map(edge -> edge.getCause().getId())
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException(
+                "Backward connector " + connector.getId().getLocalPart() + " is attributed to no agent"));
+        var organizationId = agent.getLocalPart();
+        var bundleId = (QualifiedName) attribute(element, CpmAttribute.REFERENCED_BUNDLE_ID);
+        var metaId = (QualifiedName) attribute(element, CpmAttribute.REFERENCED_META_BUNDLE_ID);
+        return new ForwardConnectorMetadata(
+            connector.getId(),
+            pF.newQualifiedName(bundleId.getNamespaceURI(), bundleId.getLocalPart(),
+                StoragePrefix + "_" + organizationId),
+            pF.newQualifiedName(metaId.getNamespaceURI(), metaId.getLocalPart(),
+                prefix(MetaPrefix, organizationId, metaId.getNamespaceURI().equals(storage.metaNamespace()))),
+            text(attribute(element, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)),
+            HashAlgorithms.valueOf(text(attribute(element, CpmAttribute.HASH_ALG))),
+            pF.newQualifiedName(agent.getNamespaceURI(), organizationId,
+                prefix(OrgPrefix, organizationId, agent.getNamespaceURI().equals(storage.organizationsNamespace())))
+        );
+    }
+
+    private static List<IEdge> edgesFrom(INode node, StatementOrBundle.Kind kind) {
+        return node.getAllEdges().stream()
+            .filter(edge -> edge.getKind() == kind && edge.getEffect() != null && edge.getCause() != null)
+            .filter(edge -> node.getId().equals(edge.getEffect().getId()))
+            .toList();
+    }
+
+    private static Object attribute(Element element, CpmAttribute attribute) {
+        return element.getOther().stream()
+            .filter(other -> other.getElementName().getLocalPart().equals(attribute.toString()))
+            .map(Other::getValue)
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException(
+                "Backward connector " + element.getId().getLocalPart() + " carries no " + attribute));
+    }
+
+    private static String text(Object value) {
+        return value instanceof LangString string ? string.getValue() : value.toString();
     }
 
     private record ResolvedSource(LinkSource source, StorageEndpoint storage, CpmDocument document, INode connector) {

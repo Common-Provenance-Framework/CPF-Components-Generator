@@ -6,6 +6,7 @@ public record LinkSource(
     String connectorId,
     String keyPath,
     String versionBundleId,
-    StorageEndpoint storage
+    StorageEndpoint storage,
+    Redundancy redundancy
 ) {
 }
