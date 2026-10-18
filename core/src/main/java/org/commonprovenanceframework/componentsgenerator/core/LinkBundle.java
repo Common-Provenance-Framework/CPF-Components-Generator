@@ -15,8 +15,10 @@ import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.StatementOrBundle;
 import org.openprovenance.prov.vanilla.ProvFactory;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -91,13 +93,20 @@ class LinkBundle {
                     prefix(OrgPrefix, source.organizationId(), sameStorage))
             ));
             if (source.redundancy() == Redundancy.BACKWARD) {
-                var duplicated = derivationSources(fromCpm, fromConnector).stream()
-                    .map(connector -> duplicate(pF, connector, storage))
-                    .toList();
-                if (!duplicated.isEmpty()) {
-                    redundantConnectors.addAll(duplicated);
-                    derivations.put(fromConnector.getId(),
-                        duplicated.stream().map(ForwardConnectorMetadata::getConnectorId).toList());
+                var pending = new ArrayDeque<INode>(List.of(fromConnector));
+                var copied = new HashSet<QualifiedName>();
+                while (!pending.isEmpty()) {
+                    var derived = pending.pop();
+                    var derivedFrom = derivationSources(fromCpm, derived);
+                    if (!derivedFrom.isEmpty()) {
+                        derivations.put(derived.getId(), derivedFrom.stream().map(INode::getId).toList());
+                    }
+                    for (var connector : derivedFrom) {
+                        if (copied.add(connector.getId())) {
+                            redundantConnectors.add(duplicate(pF, connector, storage));
+                            pending.push(connector);
+                        }
+                    }
                 }
             }
             var versionCpm = source.versionBundleId().equals(source.bundleId())
@@ -192,8 +201,8 @@ class LinkBundle {
         return sameStorage ? prefix : prefix + "_" + organizationId;
     }
 
-    private static List<INode> derivationSources(CpmDocument document, INode forwardConnector) {
-        var causes = edgesFrom(forwardConnector, StatementOrBundle.Kind.PROV_DERIVATION).stream()
+    private static List<INode> derivationSources(CpmDocument document, INode derived) {
+        var causes = edgesFrom(derived, StatementOrBundle.Kind.PROV_DERIVATION).stream()
             .map(edge -> edge.getCause().getId())
             .toList();
         return document.getBackwardConnectors().stream()

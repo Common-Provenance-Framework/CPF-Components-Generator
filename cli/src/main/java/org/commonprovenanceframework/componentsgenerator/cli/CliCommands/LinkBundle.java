@@ -65,7 +65,7 @@ public class LinkBundle implements Runnable {
     @Option(names = {"--from-storage-namespace-url"}, description = "url the referenced bundle's storage document identifiers start with; defaults to --from-storage-base-url")
     String fromStorageNamespaceUrl;
 
-    @Option(names = {"-R", "--redundancy"}, description = "BACKWARD copies the backward connectors the referenced forward connector is derived from into the new bundle as redundant connectors; defaults to NONE")
+    @Option(names = {"-R", "--redundancy"}, description = "BACKWARD copies the backward connectors the referenced forward connector is derived from, and the ones those are derived from, into the new bundle as redundant connectors; defaults to NONE")
     Redundancy redundancy = Redundancy.NONE;
 
     @Override
