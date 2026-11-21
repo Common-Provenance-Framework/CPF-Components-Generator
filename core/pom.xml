@@ -19,7 +19,7 @@
     <properties>
         <cpm.toolbox.dir>${project.basedir}/../resources/CPM-Toolbox</cpm.toolbox.dir>
 
-        <bouncycastle.version>1.86</bouncycastle.version>
+        <bouncycastle.version>1.87</bouncycastle.version>
     </properties>
 
     <dependencies>
